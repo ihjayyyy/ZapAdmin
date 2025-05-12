@@ -80,13 +80,14 @@ export const getOperatorById = async (operatorId, token) => {
  * @returns {Promise<Object>} - Updated operator data
  */
 export const updateOperator = async (operatorId, operatorData, token) => {
+  const { id:_id, ...dataWithoutId } = operatorData;
   const response = await fetch(`${apiUrl}Operator/${operatorId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(operatorData),
+    body: JSON.stringify(dataWithoutId),
   });
 
   const data = await response.json();

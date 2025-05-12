@@ -81,13 +81,14 @@ export const getStationById = async (stationId, token) => {
  * @returns {Promise<Object>} - Updated station data
  */
 export const updateStation = async (stationId, stationData, token) => {
+  const { id:_id, active: _active, ...dataToSend } = stationData;
   const response = await fetch(`${apiUrl}Station/${stationId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(stationData),
+    body: JSON.stringify(dataToSend),
   });
 
   const data = await response.json();

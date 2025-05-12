@@ -101,6 +101,7 @@ function Sidebar({ expanded: externalExpanded, setExpanded: setExternalExpanded 
           <SidebarItem icon={<ShieldUser size={20} />} text="Operators" to="/operators" expanded={expanded} />
           <SidebarItem icon={<Zap size={20} />} text="Stations" to="/stations" expanded={expanded} />
           <SidebarItem icon={<Fuel size={20} />} text="Charging Bay" to="/bays" expanded={expanded} />
+          <SidebarItem icon={<PlugZap size={20} />} text="Connectors" to="/connector" expanded={expanded} />
           <SidebarItem icon={<Settings size={20} />} text="Settings" to="/settings" expanded={expanded} />
           <SidebarItem icon={<HelpCircle size={20} />} text="Help" to="/help" expanded={expanded} />
 

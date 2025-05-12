@@ -11,6 +11,7 @@ import Otp from '../../pages/Otp';
 import Stations from '../../pages/Stations/Stations';
 import Operators from '../../pages/Operator/Operator';
 import ChargingBay from '../../pages/ChargingBay/ChargingBay';
+import Connector from '../../pages/Connectors/Connector';
 
 const Layout = () => {
   const [expanded, setExpanded] = useState(true);
@@ -53,6 +54,7 @@ const Layout = () => {
               <Route path="/stations" element={<Stations />} />
               <Route path="/operators" element={<Operators />} />
               <Route path="/bays" element={<ChargingBay />} />
+              <Route path="/connector" element={<Connector />} />
             </Route>
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/otp" element={<Navigate to="/" replace />} />

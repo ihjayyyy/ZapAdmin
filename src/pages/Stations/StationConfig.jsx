@@ -53,12 +53,6 @@ export const getStationFormFields = ({ isAdmin, currentStation }) => [
       type: 'textarea',
       placeholder: 'Any additional station details...'
     },
-    {
-      name: 'active',
-      label: 'Active',
-      type: 'checkbox',
-      required: false
-    }
   ];
   
   /**

@@ -77,13 +77,14 @@ export const getChargingBayById = async (chargingBayId, token) => {
  * @returns {Promise<Object>} - Updated charging bay data
  */
 export const updateChargingBay = async (chargingBayId, chargingBayData, token) => {
+  const { id:_id, ...dataWithoutId } = chargingBayData;
   const response = await fetch(`${apiUrl}ChargingBay/${chargingBayId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(chargingBayData),
+    body: JSON.stringify(dataWithoutId),
   });
 
   const data = await response.json();
