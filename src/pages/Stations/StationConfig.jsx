@@ -85,8 +85,9 @@ export const getStationFormFields = ({ isAdmin, currentStation }) => [
    */
   export const stationColumnDefs = [
     { key: 'id', label: 'ID', width: 'w-1/12', sortable: true },
-    { key: 'name', label: 'Station Name', width: 'w-1/5', sortable: true },
-    { key: 'address', label: 'Address', width: 'w-1/5', sortable: true },
-    { key: 'operatorId', label: 'Operator', width: 'w-1/5', sortable: true },
-    { key: 'active', label: 'Status', type: 'boolean', width: 'w-1/12', sortable: true }
+    { key: 'name', label: 'Station Name', width: 'w-auto', sortable: true },
+    { key: 'address', label: 'Address', width: 'w-auto', sortable: true },
+    { key: 'coordinates', label: 'Coordinates', width: 'w-auto', sortable: false, type: 'coordinates' },
+    { key: 'operatorId', label: 'Operator', width: 'w-auto', sortable: true },
+    { key: 'active', label: 'Status', type: 'boolean', width: 'w-auto', sortable: true },
   ];

@@ -14,6 +14,28 @@ export function getStationCellRenderers({ getOperatorNameById }) {
       return <span className='text-gray-600'>{getOperatorNameById(row.operatorId)}</span>;
     },
     
+    coordinates: (row) =>{
+      return (
+        <div className="flex flex-col space-y-1">
+          {row.latitude && (          
+            <span className='text-gray-600'
+              title={row.latitude}
+            >
+              Lat: {row.latitude}
+            </span>
+          )}
+          
+          {row.longitude && (          
+            <span className='text-gray-600'
+              title={row.longitude}
+            >
+              Long: {row.longitude}
+            </span>
+          )}
+        </div>
+      );
+    },
+    
     // Custom renderer for active status
     active: (row) => {
       return (

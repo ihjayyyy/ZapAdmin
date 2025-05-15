@@ -32,9 +32,9 @@ export function generateTableColumns({
         {isSorted && (
           <span className="ml-1">
             {sortAscending ? (
-              <ArrowUp size={14} className="text-blue-500" />
+              <ArrowUp size={14} className="text-white" />
             ) : (
-              <ArrowDown size={14} className="text-blue-500" />
+              <ArrowDown size={14} className="text-white" />
             )}
           </span>
         )}
@@ -52,7 +52,7 @@ export function generateTableColumns({
     return {
       key,
       label: sortable ? getSortableHeader(key, label) : label,
-      width: width || 'w-1/6',
+      width: width,
       sortable,
       render: customRenderer || (row => {
         // Default rendering based on type
@@ -71,7 +71,7 @@ export function generateTableColumns({
             return value.toLocaleString();
           default:
             return (
-              <div className="text-sm text-gray-600 truncate max-w-[120px] md:max-w-[200px]" title={value}>
+              <div className="text-sm text-gray-600" title={value}>
                 {value}
               </div>
             );

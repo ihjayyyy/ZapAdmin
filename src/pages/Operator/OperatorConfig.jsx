@@ -42,6 +42,12 @@ export const getOperatorFormFields = () => [
     required: true,
     gridGroup: 'contactInfo'
   },
+  {
+    name: 'active',
+    label: 'Status',
+    type: 'checkbox',
+    defaultValue: true
+  }
 ];
 
 /**
@@ -53,6 +59,5 @@ export const operatorColumnDefs = [
   { key: 'name', label: 'Operator Name', width: 'w-1/6', sortable: true },
   { key: 'address', label: 'Address', width: 'w-1/6', sortable: true },
   { key: 'contactPerson', label: 'Contact Person', width: 'w-1/6', sortable: true },
-  { key: 'email', label: 'Email', width: 'w-1/6', sortable: true },
-  { key: 'phone', label: 'Phone', width: 'w-1/6', sortable: true },
+  { key: 'contact', label: 'Contact', width: 'w-1/6', sortable: false, type: 'contact' },
 ];

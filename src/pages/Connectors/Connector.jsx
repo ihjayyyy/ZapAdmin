@@ -293,13 +293,13 @@ function Connector() {
 
   // ===== RENDER =====
   return (
-    <div className="container mx-auto">
+    <div className="w-full mx-auto">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Connectors</h1>
         <button
           onClick={modalHandlers.openCreateModal}
-          className="filled-button"
+          className="filled-button flex items-center"
         >
           <Plus size={16} />
           Add Connector

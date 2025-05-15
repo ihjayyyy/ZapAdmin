@@ -12,7 +12,7 @@ function SidebarItem({ icon, text, to, alert, expanded }) {
         to={to}
         className={`
           min-h-[44px] relative flex items-center py-2 px-3 my-2 font-medium rounded-md cursor-pointer transition-colors hover:-translate-y-0.5 hover:shadow-lg
-          ${isActive ? "bg-turquoise-500 text-white" : "hover:bg-turquoise-100 "}
+          ${isActive ? "bg-deep-blue-500 text-white" : "hover:bg-deep-blue-100 "}
         `}
         onMouseEnter={() => !expanded && setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
@@ -22,7 +22,7 @@ function SidebarItem({ icon, text, to, alert, expanded }) {
           {text}
         </span>
         {alert && (
-          <div className={`absolute right-2 w-2 h-2 rounded ${expanded ? '' : 'top-2'} ${isActive ? 'bg-white' : 'bg-turquoise-500'}`} />
+          <div className={`absolute right-2 w-2 h-2 rounded ${expanded ? '' : 'top-2'} ${isActive ? 'bg-white' : 'bg-deep-blue-500'}`} />
         )}
       </Link>
 

@@ -87,7 +87,7 @@ export const getConnectorFormFields = (connectorTypes, bays = []) => [
    */
   export const connectorColumnDefs = [
     { key: 'id', label: 'ID', width: 'w-1/12', sortable: true },
-    { key: 'chargingBayId', label: 'Bay ID', width: 'w-1/6', sortable: true },
-    { key: 'connectorType', label: 'Type', width: 'w-1/6', sortable: true },
-    { key: 'price', label: 'Price (₱)', width: 'w-1/6', sortable: true },
+    { key: 'chargingBayId', label: 'Bay ID', width: 'w-auto', sortable: true },
+    { key: 'connectorType', label: 'Type', width: 'w-auto', sortable: true },
+    { key: 'price', label: 'Price (₱)', width: 'w-auto', sortable: true },
   ];

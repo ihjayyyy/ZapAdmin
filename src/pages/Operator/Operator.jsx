@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
-// You can also import from utility file
-// import { toastSuccess, toastError, toastCRUD } from '../../utils/toastUtil';
 
 // Components
 import DynamicTable from '../../components/DynamicTable';
@@ -21,6 +19,7 @@ import {
 } from '../../services/OperatorServices';
 import { generateTableColumns } from '../../components/GenerateTableColumns';
 import { getOperatorFormFields, operatorColumnDefs } from './OperatorConfig';
+import { getOperatorCellRenders } from './OperatorCellRenders';
 
 function Operators() {
   // ===== STATE MANAGEMENT =====
@@ -78,9 +77,6 @@ function Operators() {
         setOperators(data.result);
         setTotalOperators(data.Pagination.length);
       }
-
-      // Optional toast for data loaded
-      // toast.info('Operators loaded successfully');
     } catch (err) {
       toast.error(err.message || 'Failed to load operators');
     } finally {
@@ -101,7 +97,7 @@ function Operators() {
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [searchTerm, fetchOperators]);
+  }, [searchTerm]);
 
   // ===== CRUD OPERATIONS =====
   const crudOperations = {
@@ -162,7 +158,7 @@ function Operators() {
       setCurrentOperator({
         name: '',
         address: '',
-        contact: '',
+        contactPerson: '',
         email: '',
         phone: '',
         active: true
@@ -202,10 +198,17 @@ function Operators() {
   const tableHandlers = {
     // Sorting handler
     toggleSort: (field) => {
-      if (sortField === field) {
+      // Map custom field types back to actual database fields
+      let actualField = field;
+      if (field === 'contact') {
+        // Default to sorting by email when contact field is clicked
+        actualField = 'email';
+      }
+      
+      if (sortField === actualField) {
         setSortAscending(!sortAscending);
       } else {
-        setSortField(field);
+        setSortField(actualField);
         setSortAscending(true);
       }
     },
@@ -218,12 +221,16 @@ function Operators() {
   };
 
   // ===== TABLE CONFIGURATION =====
+  // Get cell renderers
+  const cellRenderers = getOperatorCellRenders();
+  
   // Generate table columns
   const columns = generateTableColumns({
     columnDefs: operatorColumnDefs,
     sortField,
     sortAscending,
     toggleSort: tableHandlers.toggleSort,
+    cellRenderers
   });
 
   // Get form fields
@@ -231,14 +238,14 @@ function Operators() {
 
   // ===== RENDER UI =====
   return (
-    <div className="container mx-auto">
+    <div className="w-full mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Operators</h1>
         {isAdmin && (
           <button
             onClick={modalHandlers.openCreateModal}
-            className="filled-button"
+            className="filled-button flex items-center"
           >
             <Plus size={16} />
             Add Operator

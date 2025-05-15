@@ -65,7 +65,7 @@ export const getBayFilterOptions = (stations) => [
  */
 export const bayColumnDefs = [
   { key: 'id', label: 'ID', width: 'w-1/12', sortable: true },
-  { key: 'maxPower', label: 'Max Power (kW)', width: 'w-1/5', sortable: true },
-  { key: 'stationId', label: 'Station', width: 'w-1/4', sortable: true },
-  { key: 'active', label: 'Status', type: 'boolean', width: 'w-1/12', sortable: true }
+  { key: 'maxPower', label: 'Max Power (kW)', width: 'w-auto', sortable: true },
+  { key: 'stationId', label: 'Station', width: 'w-auto', sortable: true },
+  { key: 'active', label: 'Status', type: 'boolean', width: 'w-auto', sortable: true }
 ];
