@@ -56,8 +56,8 @@ export const getOperatorFormFields = () => [
  */
 export const operatorColumnDefs = [
   { key: 'id', label: 'ID', width: 'w-1/16', sortable: true },
-  { key: 'name', label: 'Operator Name', width: 'w-1/6', sortable: true },
-  { key: 'address', label: 'Address', width: 'w-1/6', sortable: true },
-  { key: 'contactPerson', label: 'Contact Person', width: 'w-1/6', sortable: true },
-  { key: 'contact', label: 'Contact', width: 'w-1/6', sortable: false, type: 'contact' },
+  { key: 'name', label: 'Operator Name', width: 'w-auto', sortable: true },
+  { key: 'address', label: 'Address', width: 'w-auto', sortable: true },
+  { key: 'contactPerson', label: 'Contact Person', width: 'w-auto', sortable: true },
+  { key: 'contact', label: 'Contact', width: 'w-auto', sortable: false, type: 'contact' },
 ];

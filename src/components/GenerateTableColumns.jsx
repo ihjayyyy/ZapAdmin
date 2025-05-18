@@ -71,7 +71,7 @@ export function generateTableColumns({
             return value.toLocaleString();
           default:
             return (
-              <div className="text-sm text-gray-600" title={value}>
+              <div className="truncate text-sm text-gray-600" title={value}>
                 {value}
               </div>
             );

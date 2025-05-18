@@ -84,10 +84,10 @@ export const getStationFormFields = ({ isAdmin, currentStation }) => [
    * @returns {Array} Table column configuration
    */
   export const stationColumnDefs = [
-    { key: 'id', label: 'ID', width: 'w-1/12', sortable: true },
+    { key: 'id', label: 'ID', width: 'w-1/16', sortable: true },
     { key: 'name', label: 'Station Name', width: 'w-auto', sortable: true },
     { key: 'address', label: 'Address', width: 'w-auto', sortable: true },
-    { key: 'coordinates', label: 'Coordinates', width: 'w-auto', sortable: false, type: 'coordinates' },
+    // { key: 'coordinates', label: 'Coordinates', width: 'w-auto', sortable: false, type: 'coordinates' },
     { key: 'operatorId', label: 'Operator', width: 'w-auto', sortable: true },
     { key: 'active', label: 'Status', type: 'boolean', width: 'w-auto', sortable: true },
   ];

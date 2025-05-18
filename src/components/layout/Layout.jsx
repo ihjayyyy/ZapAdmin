@@ -14,14 +14,14 @@ import ChargingBay from '../../pages/ChargingBay/ChargingBay';
 import Connector from '../../pages/Connectors/Connector';
 
 const Layout = () => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const { isAuthenticated, isLoading } = useAuth();
 
   // Show loading spinner while checking authentication status
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="w-12 h-12 border-4 border-deep-blue-500 border-solid rounded-full border-t-transparent animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-indigo-500 border-solid rounded-full border-t-transparent animate-spin"></div>
       </div>
     );
   }
@@ -39,12 +39,12 @@ const Layout = () => {
 
   // Render normal layout with sidebar when authenticated
   return (
-    <div className="flex h-screen bg-gray-50 relative">
-      {/* Sidebar with absolute positioning */}
+    <div className="flex h-screen bg-gray-50">
       <Sidebar expanded={expanded} setExpanded={setExpanded} />
       
-      {/* Main content doesn't shift when sidebar expands */}
-      <main className="flex-1 transition-all duration-300 ml-17">
+      <main className={`flex-1 transition-all duration-300 ${
+        expanded ? "ml-60" : "ml-17"
+      }`}>
         <div className="py-8 px-8 h-full">
           <Routes>
             <Route element={<ProtectedRoute />}>
