@@ -1,299 +1,275 @@
-import React, { useState } from 'react';
-import { Pencil, Trash2, MapPin, Phone, Mail, Eye, MoreVertical } from 'lucide-react';
+import Link from "next/link";
+import React, { useState, useEffect } from "react";
+import { 
+  FiArrowUpRight, 
+  FiDollarSign, 
+  FiMoreHorizontal, 
+  FiChevronUp, 
+  FiChevronDown, 
+  FiSearch, 
+  FiFilter,
+  FiPlus
+} from "react-icons/fi";
 
-// Simple truncated text component that ensures text doesn't wrap to a second line
-const TruncatedCell = ({ text, maxWidth = "max-w-[200px]" }) => {
-  return (
-    <div className={`block  truncate ${maxWidth}`}>
-      {text || ""}
-    </div>
-  );
-};
-
-// Actions dropdown menu component - with smart position detection
-const ActionsDropdown = ({ row, onView, onEdit, onDelete }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showAbove, setShowAbove] = useState(false);
-  const dropdownRef = React.useRef(null);
+function DynamicTable({ 
+  title, 
+  icon: Icon = FiDollarSign,
+  fetchData,
+  columns = [], 
+  initialPageSize = 5,
+  onFilterClick = null,
+  hasActiveFilters = false,
+  onAddClick = null,
+}) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [sortField, setSortField] = useState(null);
+  const [sortAscending, setSortAcceding] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [data, setData] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(true);
   
-  const toggleDropdown = () => {
-    if (!isOpen) {
-      // When opening, check if we're near the bottom of the viewport
-      setTimeout(() => {
-        if (dropdownRef.current) {
-          const rect = dropdownRef.current.getBoundingClientRect();
-          const spaceBelow = window.innerHeight - rect.bottom;
-          // If there's less than 150px below, show dropdown above
-          setShowAbove(spaceBelow < 200);
-        }
-      }, 0);
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // Define columns that should not be sortable
+  const nonSortableColumns = ['contact', 'location','actions'];
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const result = await fetchData({
+            page: currentPage,
+            pageSize,
+            sortField,
+            sortAscending,
+            filter: searchTerm ? [`searchTerm=${searchTerm}`] : []
+        });
+        
+        setData(result.data);
+        setTotalItems(result.totalItems);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [currentPage, pageSize, sortField, sortAscending, searchTerm, fetchData]);
+
+  // Handle sorting
+  const handleSort = (field) => {
+    // Check if the column is sortable
+    if (nonSortableColumns.includes(field)) {
+      return; // Don't sort if column is in non-sortable list
     }
-    setIsOpen(!isOpen);
-  };
-  
-  // Close dropdown when an action is clicked
-  const handleAction = (action) => {
-    action();
-    setIsOpen(false);
-  };
-  
-  return (
-    <div className="relative flex justify-center" ref={dropdownRef}>
-      <button 
-        onClick={toggleDropdown}
-        className="flex cursor-pointer items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 focus:outline-none"
-        aria-label="More actions"
-      >
-        <MoreVertical size={16} className="text-gray-600" />
-      </button>
-      
-      {isOpen && (
-        <>
-          {/* Invisible overlay to detect clicks outside */}
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setIsOpen(false)}
-          />
-          
-          {/* Dropdown menu with dynamic positioning */}
-          <div className={`absolute ${showAbove ? 'bottom-full mb-1' : 'top-full mt-1'} right-0 z-20 w-36 bg-white rounded-md shadow-lg focus:outline-none`}>
-            <div className="py-1">
-              {onView && (
-                <button
-                  onClick={() => handleAction(() => onView(row))}
-                  className="group flex items-center w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  <Eye size={16} className="mr-3 text-amber-500" />
-                  <span>View</span>
-                </button>
-              )}
-              {onEdit && (
-                <button
-                  onClick={() => handleAction(() => onEdit(row))}
-                  className="group flex items-center w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  <Pencil size={16} className="mr-3 text-blue-500" />
-                  <span>Edit</span>
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  onClick={() => handleAction(() => onDelete(row.id))}
-                  className="group flex items-center w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  <Trash2 size={16} className="mr-3 text-red-600" />
-                  <span>Delete</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
-// Modified mobile card view with improved truncation
-const MobileCardView = ({ data, columns, onView, onEdit, onDelete, actions }) => {
+    if (sortField === field) {
+      setSortAcceding(!sortAscending);
+    } else {
+      setSortField(field);
+      setSortAcceding(true);
+    }
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  // Check if a column is sortable
+  const isSortable = (columnKey) => {
+    return !nonSortableColumns.includes(columnKey);
+  };
+
+  // Handle search with debounce
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    
+    // Clear any existing timeouts
+    if (window.searchTimeout) {
+      clearTimeout(window.searchTimeout);
+    }
+    
+    // Set a new timeout to update search after typing stops
+    window.searchTimeout = setTimeout(() => {
+      setSearchTerm(value);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 300); // 300ms debounce
+    
+    // Update the input value immediately (but don't trigger search yet)
+    e.target.value = value;
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page when page size changes
+  };
+
   return (
-    <div className="space-y-4">
-      {data.map((row, index) => (
-        <div key={row.id || index} className="bg-white rounded-lg shadow-md p-4">
-          {/* Main row info with actions dropdown */}
-          <div className="font-medium text-lg mb-3 flex justify-between items-center">
-            <TruncatedCell text={row.name || row.id} maxWidth="max-w-[200px]" />
-            
-            {/* Status badge if available */}
-            <div className="flex items-center space-x-2">
-              {columns.some(col => col.key === 'active') && (
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  row.active 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {row.active ? 'Active' : 'Inactive'}
-                </span>
-              )}
-              
-              {/* Actions dropdown */}
-              {actions && (
-                <ActionsDropdown 
-                  row={row} 
-                  onView={onView} 
-                  onEdit={onEdit} 
-                  onDelete={onDelete} 
-                />
-              )}
-            </div>
+    <div className="col-span-12 p-4 mx-4 rounded border border-stone-300">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
+        <div className="flex items-center gap-2">
+          <h3 className="flex items-center gap-1.5 font-medium">
+            <Icon /> {title}
+          </h3>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="pl-8 pr-2 py-1 text-sm border border-stone-300 rounded"
+              defaultValue={searchTerm}
+              onChange={handleSearch}
+            />
+            <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-stone-400" />
           </div>
-          
-          {/* Details */}
-          <div className="space-y-2 mb-4">
-            {columns.map((col) => {
-              // Skip status since we're showing it above
-              if (col.key === 'active' || col.key === 'actions' || col.key === 'name') return null;
-              
-              const value = col.render ? col.render(row) : row[col.key];
-              if (!value && value !== 0) return null;
+          {onFilterClick && (
+            <button 
+              className={`cursor-pointer ${hasActiveFilters ? 'bg-deepblue-100 text-deepblue-700' : 'hover:bg-stone-200'} transition-colors grid place-content-center rounded text-sm size-8`}
+              onClick={onFilterClick}
+              aria-label="Filter data"
+              title="Filter data"
+            >
+              <FiFilter className={hasActiveFilters ? "text-deepblue-700" : ""} />
+            </button>
+          )}
+        </div>
+        {onAddClick && (
+          <button 
+            className="cursor-pointer bg-deepblue-500 text-white transition-colors place-content-center rounded text-sm py-1.5 px-3 flex items-center gap-1"
+            onClick={onAddClick}
+            aria-label="Add new item"
+            title="Add new item"
+          >
+            <FiPlus size={16} />
+            <span>Add</span>
+          </button>
+        )}
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="overflow-y-auto border border-stone-200 rounded min-h-100 max-h-100" >
+          <table className="w-full table-auto">
+            <thead className="sticky top-0 z-10">
+              <tr className="text-sm font-normal bg-deepblue-500 text-white">
+                {columns.map((column) => (
+                  <th 
+                    key={column.key} 
+                    className={`text-start px-1.5 py-3 ${isSortable(column.key) ? 'cursor-pointer hover:bg-deepblue-400' : ''}`}
+                    onClick={() => isSortable(column.key) && handleSort(column.key)}
+                  >
+                    <div className="flex items-center gap-1">
+                      {column.label}
+                      {isSortable(column.key) && sortField === column.key && (
+                        sortAscending ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />
+                      )}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className="p-4 text-center">
+                    <div className="flex justify-center items-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-deepblue-500"></div>
+                    </div>
+                  </td>
+                </tr>
+              ) : data.length > 0 ? (
+                data.map((item, index) => (
+                  <tr key={index} className={index % 2 ? "bg-deepblue-100 text-sm" : "text-sm"}>
+                    {columns.map((column) => (
+                      <td key={column.key} className="p-1.5">
+                        {column.render ? (
+                          column.render(item[column.key], item)
+                        ) : (
+                          item[column.key]
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={columns.length} className="p-4 text-center text-stone-500">
+                    No data found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-stone-500">Select Page Size:</span>
+          <div className="flex border border-stone-300 rounded overflow-hidden">
+            {[5, 10, 15].map((size) => (
+              <button
+                key={size}
+                onClick={() => handlePageSizeChange(size)}
+                className={`cursor-pointer px-3 py-1 text-sm ${
+                  pageSize === size 
+                    ? 'bg-deepblue-500 text-white' 
+                    : 'hover:bg-stone-100 text-stone-700'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="text-sm text-stone-500">
+            Showing {data.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}-{Math.min(currentPage * pageSize, totalItems)} of {totalItems}
+          </div>
+          <div className="flex gap-1 ml-4">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1 || loading}
+              className={`px-2 py-1 rounded text-sm ${currentPage === 1 || loading ? 'text-stone-400' : 'text-deepblue-500 hover:bg-stone-100'}`}
+            >
+              Previous
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
               
               return (
-                <div key={col.key} className="flex justify-between text-sm">
-                  <div className="w-auto text-gray-500">{col.label}</div>
-                  <div className="w-auto max-w-[65%]">
-                    {col.key === 'address' && (
-                      <div className="flex items-center">
-                        <MapPin size={14} className="text-gray-600 mr-1 flex-shrink-0" />
-                        <TruncatedCell text={value} maxWidth="max-w-full" />
-                      </div>
-                    )}
-                    {col.key === 'phone' && (
-                      <div className="flex items-center">
-                        <Phone size={14} className="text-gray-600 mr-1 flex-shrink-0" />
-                        <span>{value}</span>
-                      </div>
-                    )}
-                    {col.key === 'email' && (
-                      <div className="flex items-center">
-                        <Mail size={14} className="text-gray-600 mr-1 flex-shrink-0" />
-                        <TruncatedCell text={value} maxWidth="max-w-full" />
-                      </div>
-                    )}
-                    {col.key !== 'address' && col.key !== 'phone' && col.key !== 'email' && (
-                      <TruncatedCell text={value} maxWidth="max-w-full" />
-                    )}
-                  </div>
-                </div>
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  disabled={loading}
+                  className={`size-8 rounded text-sm ${pageNum === currentPage ? 'bg-deepblue-500 text-white' : 'text-deepblue-500 hover:bg-stone-100'}`}
+                >
+                  {pageNum}
+                </button>
               );
             })}
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || loading}
+              className={`px-2 py-1 rounded text-sm ${currentPage === totalPages || loading ? 'text-stone-400' : 'text-deepblue-500 hover:bg-stone-100'}`}
+            >
+              Next
+            </button>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
-};
-
-// Main table component with improved cell truncation
-const DynamicTable = ({
-  columns,
-  data,
-  onEdit,
-  onDelete,
-  onView,
-  isLoading,
-  error,
-  actions = true,
-  emptyMessage = "No data found",
-}) => {
-  
-  return (
-    <div className="w-full">
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-      
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        </div>
-      ) : (
-        <>
-          {/* Mobile card view - only visible on small screens */}
-          <div className="md:hidden">
-            <MobileCardView 
-              data={data} 
-              columns={columns} 
-              onView={onView} 
-              onEdit={onEdit} 
-              onDelete={onDelete}
-              actions={actions}
-            />
-          </div>
-          
-          {/* Traditional table - hidden on small screens */}
-          <div className="hidden md:block max-w-full rounded-lg shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 table-fixed">
-                <thead className="bg-deep-blue-500">
-                  <tr>
-                    {columns.map((col) => (
-                      <th 
-                        key={col.key} 
-                        className={`px-2 md:px-4 py-3 md:py-4 text-left text-xs font-medium text-white uppercase tracking-wider ${col.width || ''}`}
-                      >
-                        {col.label}
-                      </th>
-                    ))}
-                    {/* Only add actions column if actions are enabled and column isn't already defined */}
-                    {actions && !columns.some(col => col.key === 'actions') && (
-                      <th className="px-4 py-3 text-xs font-medium text-white uppercase tracking-wider w-16 text-center">
-                        <span className="sr-only md:not-sr-only">Actions</span>
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data && data.length > 0 ? (
-                    data.map((row, index) => (
-                      <tr key={row.id || index} className="hover:bg-gray-50">
-                        {columns.map((col) => (
-                          <td key={col.key} className="px-2 md:px-4 py-3 md:py-4 text-sm whitespace-nowrap">
-                            {col.render ? (
-                              <div className="flex items-center space-x-1">
-                                {(col.key === 'Address' || col.key === 'address') && (
-                                  <MapPin size={16} className="text-gray-600 flex-shrink-0" />
-                                )}
-                                {(col.key === 'phone') && (
-                                  <Phone size={16} className="text-gray-600 flex-shrink-0" />
-                                )}
-                                {(col.key === 'email') && (
-                                  <Mail size={16} className="text-gray-600 flex-shrink-0" />
-                                )}
-                                <TruncatedCell 
-                                  text={col.render(row)} 
-                                  maxWidth={col.maxWidth || "max-w-[200px]"} 
-                                />
-                              </div>
-                            ) : (
-                              <TruncatedCell 
-                                text={row[col.key]} 
-                                maxWidth={col.maxWidth || "max-w-[200px]"} 
-                              />
-                            )}
-                          </td>
-                        ))}
-                        {/* Only add actions column if actions are enabled and column isn't already defined */}
-                        {actions && !columns.some(col => col.key === 'actions') && (
-                          <td className="px-2 md:px-4 py-3 md:py-4 whitespace-nowrap text-center text-sm font-medium w-16">
-                            <ActionsDropdown 
-                              row={row} 
-                              onView={onView} 
-                              onEdit={onEdit} 
-                              onDelete={onDelete} 
-                            />
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td 
-                        colSpan={actions && !columns.some(col => col.key === 'actions') ? columns.length + 1 : columns.length} 
-                        className="px-4 py-4 text-center text-sm text-gray-500"
-                      >
-                        {emptyMessage}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+}
 
 export default DynamicTable;

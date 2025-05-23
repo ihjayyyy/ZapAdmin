@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_APIURL;
+const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
 
 /**
  * Create a new operator

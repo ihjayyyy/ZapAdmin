@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_APIURL;
+const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
 
 /**
  * Create a new station
@@ -152,7 +152,7 @@ export const getStationsByOperator = async (operatorId, token) => {
  * @param {string} pagingData.sortField - Field to sort by
  * @param {boolean} pagingData.sortAscending - Sort order
  * @param {string} token - Authentication token
- * @returns {Promise<Object>} - Paginated operator data
+ * @returns {Promise<Object>} - Paginated station data
  */
 export const getPagedStations = async (pagingData, token) => {
   const response = await fetch(`${apiUrl}Station/Paging`, {
@@ -166,7 +166,29 @@ export const getPagedStations = async (pagingData, token) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch paginated operators');
+    throw new Error(data.message || 'Failed to fetch paginated stations');
+  }
+
+  return data;
+};
+
+/**
+ * Toggle station activation status
+ * @param {number} stationId - ID of the station to toggle
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} - Response data
+ */
+export const toggleStationActivate = async (stationId, token) => {
+  const response = await fetch(`${apiUrl}Station/ToggleActivate/${stationId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to toggle station activation');
   }
 
   return data;

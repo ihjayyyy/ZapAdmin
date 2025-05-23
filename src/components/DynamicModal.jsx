@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { FaTimes } from 'react-icons/fa';
 
 const DynamicModal = ({ 
   isOpen, 
@@ -10,7 +10,6 @@ const DynamicModal = ({
 }) => {
   if (!isOpen) return null;
   
-  // Size classes for the modal
   const sizeClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -33,7 +32,7 @@ const DynamicModal = ({
             className="cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none absolute right-4 top-4 md:relative md:right-0 md:top-0"
             aria-label="Close"
           >
-            <X size={20} />
+            <FaTimes size={20} /> {/* <-- Icon updated here */}
           </button>
         </div>
         <div className="modal-body p-4 md:p-6">

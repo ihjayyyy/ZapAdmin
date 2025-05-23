@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_APIURL;
+const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
 
 export const loginRequest = async (email, password) => {
   const response = await fetch(`${apiUrl}Auth/Login`, {

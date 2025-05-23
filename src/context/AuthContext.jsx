@@ -1,5 +1,7 @@
+'use client';
+
 import { createContext, useState, useContext, useEffect } from 'react';
-import { loginRequest } from '../services/authServices';
+import { loginRequest } from '@/services/AuthServices';
 
 const AuthContext = createContext(null);
 
@@ -68,6 +70,9 @@ export const AuthProvider = ({ children }) => {
 
     } catch (err) {
       console.error('Login error:', err);
+      if(err == `Unexpected token 'I', "Invalid User." is not valid JSON`){
+        setError('Login failed. Check your username and password.')
+      }
       setError(err.message || 'An error occurred during login. Please try again.');
       return false;
     } finally {

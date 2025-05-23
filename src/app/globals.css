@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@theme {
+  /* Deep Blue */
+  --color-deepblue-50: oklch(0.97 0.02 265);
+  --color-deepblue-100: oklch(0.93 0.04 265);
+  --color-deepblue-200: oklch(0.88 0.07 265);
+  --color-deepblue-300: oklch(0.80 0.10 265);
+  --color-deepblue-400: oklch(0.70 0.13 265);
+  --color-deepblue-500: oklch(0.32 0.15 265); /* Primary color - Deep Blue (#232F68) */
+  --color-deepblue-600: oklch(0.28 0.13 265);
+  --color-deepblue-700: oklch(0.24 0.11 265);
+  --color-deepblue-800: oklch(0.20 0.09 265);
+  --color-deepblue-900: oklch(0.16 0.07 265);
+  --color-deepblue-950: oklch(0.12 0.05 265);
+
+  /* Turquoise */
+  --color-turquoise-50: oklch(0.97 0.02 188);
+  --color-turquoise-100: oklch(0.93 0.04 188);
+  --color-turquoise-200: oklch(0.88 0.07 188);
+  --color-turquoise-300: oklch(0.80 0.10 188);
+  --color-turquoise-400: oklch(0.72 0.12 188);
+  --color-turquoise-500: oklch(0.65 0.14 188); /* Secondary color - Turquoise (#02A09A) */
+  --color-turquoise-600: oklch(0.58 0.12 188);
+  --color-turquoise-700: oklch(0.50 0.10 188);
+  --color-turquoise-800: oklch(0.42 0.08 188);
+  --color-turquoise-900: oklch(0.34 0.06 188);
+  --color-turquoise-950: oklch(0.26 0.04 188);
+}
+
+@layer components{
+  .tooltip{
+    @apply absolute left-12 top-2 z-50 px-2 py-1 bg-turquoise-500 text-white text-sm rounded shadow-lg whitespace-nowrap
+  }
+
+  .filled-button{
+    @apply cursor-pointer flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-deepblue-500 hover:bg-deepblue-700 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-70
+  }
+
+  .outline-button {
+    @apply cursor-pointer border-1 border-deepblue-500 text-deepblue-500 bg-transparent rounded-md font-medium py-2 px-4 transition-all duration-200 hover:bg-deepblue-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 disabled:opacity-60;
+  }
+
+  .cancel-button{
+    @apply cursor-pointer border py-2 px-4 rounded-md font-medium transition-all duration-200 hover:-translate-y-0.5 text-red-500 hover:shadow-lg hover:bg-red-500/10 hover:border-red-500
+  }
+
+  .input{
+    @apply w-full rounded-xl px-4 py-3 transition focus:outline-none focus:border-deepblue-500 focus:bg-deepblue-500/5 border bg-black/5 text-black border-gray-300 hover:border-turquoise-500/80 placeholder-gray-500
+  }
+}
