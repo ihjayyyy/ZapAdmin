@@ -1,7 +1,7 @@
 import React from 'react';
 import { TbWorldLatitude, TbWorldLongitude } from "react-icons/tb";
-import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
-import { renderActionMenu } from '@/components/ActionMenu';
+import { FiCheckCircle, FiXCircle, FiEye, FiEdit, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import ActionButtons from '@/components/ActionButtons';
 
 // Custom renderer for operator information
 export const renderOperator = (operatorId, operators) => {
@@ -47,29 +47,26 @@ export const renderStatus = (active) => {
   );
 };
 
-// Custom renderer for action buttons - now using shared action menu with toggle status
-export const renderActions = (_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus, actionMenuOpen, setActionMenuOpen, menuRefs) => {
-  // Custom actions for toggle status
-  const customActions = [
-    {
-      label: item.active ? 'Deactivate' : 'Activate',
-      handler: handleToggleStatus,
-      icon: item.active ? <FiXCircle /> : <FiCheckCircle />,
-      className: item.active ? 'text-red-600' : 'text-green-600'
-    }
-  ];
-
-  return renderActionMenu(
-    _, 
-    item, 
-    handleViewStation, 
-    handleEditStation, 
-    handleDeleteConfirmation, 
-    actionMenuOpen, 
-    setActionMenuOpen, 
-    menuRefs,
-    {
-      customActions: customActions
-    }
-  );
-};
+// Custom renderer for action buttons - now using ActionButtons
+export const renderActions = (
+  _, 
+  item, 
+  handleViewStation, 
+  handleEditStation, 
+  handleDeleteConfirmation, 
+  handleToggleStatus
+) => (
+  <ActionButtons
+    actions={[
+      { onClick: () => handleViewStation(item), icon: FiEye, title: 'View' },
+      { onClick: () => handleEditStation(item), icon: FiEdit, title: 'Edit', className: 'hover:bg-blue-100 text-blue-600' },
+      { onClick: () => handleDeleteConfirmation(item), icon: FiTrash2, title: 'Delete', className: 'hover:bg-red-100 text-red-600' },
+      { 
+        onClick: () => handleToggleStatus(item), 
+        icon: item.active ? FiToggleRight : FiToggleLeft, 
+        title: item.active ? 'Deactivate' : 'Activate', 
+        className: 'hover:bg-yellow-100 text-yellow-600' 
+      },
+    ]}
+  />
+);

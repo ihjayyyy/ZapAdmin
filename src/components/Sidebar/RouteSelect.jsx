@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { FiHome, FiUser } from 'react-icons/fi';
 import { RiShieldUserLine } from 'react-icons/ri';
-import { BsEvStation } from "react-icons/bs";
+import { BsBattery, BsEvStation } from "react-icons/bs";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { PiPlugChargingBold } from "react-icons/pi";
 
@@ -104,7 +104,13 @@ const RouteSelect = ({ collapsed }) => {
         title="Connectors"
         collapsed={collapsed}
         href="/connectors"
-      />   
+      />
+      <Route
+        Icon={BsBattery}
+        title="Charging Sessions"
+        collapsed={collapsed}
+        href="/chargingSessions"
+      />      
     </div>
   );
 };

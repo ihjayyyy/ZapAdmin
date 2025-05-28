@@ -12,9 +12,7 @@ import EntityFilterModal from "@/components/EntityFilterModal";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { connectorColumns, connectorFormFields, connectorFilterOptions } from './connectorConfig';
-import { renderPrice, renderActions } from './connectorRenderers';
-import { validateConnectorForm } from './connectorValidation';
-import { useActionMenu } from "@/components/ActionMenu";
+import { renderPrice, renderActions, renderStatus } from './connectorRenderers';
 import { BsPlug } from "react-icons/bs";
 
 function ConnectorsPage() {
@@ -29,9 +27,6 @@ function ConnectorsPage() {
   const [chargingBayOptions, setChargingBayOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // Using our custom hook for action menu
-  const [actionMenuOpen, setActionMenuOpen, menuRefs] = useActionMenu();
-
   // Fetch connector types and charging bays for filter dropdowns
   useEffect(() => {
     const loadFilterData = async () => {
@@ -147,8 +142,9 @@ function ConnectorsPage() {
   }, [token, filters, buildFilterString,refreshTrigger]);
 
   const columns = connectorColumns(
-    (_, item) => renderActions(_, item, handleViewConnector, handleDeleteConfirmation, actionMenuOpen, setActionMenuOpen, menuRefs),
-    renderPrice
+    (_, item) => renderActions(_, item, handleViewConnector, handleDeleteConfirmation),
+    renderPrice,
+    renderStatus
   );
 
   const customTableProps = {

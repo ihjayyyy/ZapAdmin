@@ -6,9 +6,8 @@ import DynamicTable from "@/components/DynamicTable";
 import EntityFilterModal from "@/components/EntityFilterModal";
 import EntityFormModal from "@/components/EntityFormModal";
 import { usersColumns, usersFilterOptions, usersFormFields } from "./usersConfig";
-import { renderActions,renderConfirmed, renderUsertype } from './userRenderers';
+import { renderActions, renderConfirmed, renderUsertype } from './userRenderers';
 import { validateUserForm } from './userValidation';
-import { useActionMenu } from "@/components/ActionMenu";
 import { BsPerson } from "react-icons/bs";
 function UsersPage() {
   const token = localStorage.getItem('token');
@@ -19,7 +18,6 @@ function UsersPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [filters, setFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [actionMenuOpen, setActionMenuOpen, menuRefs] = useActionMenu();
 
   const handleAddUser = ()=>{
     setCurrentUser(
@@ -105,7 +103,7 @@ function UsersPage() {
   }, [token, filters, buildFilterString, refreshTrigger]);
 
   const columns = usersColumns(
-    (user, item) => renderActions(user, item, handleViewUser, actionMenuOpen, setActionMenuOpen, menuRefs),
+    (user, item) => renderActions(user, item, handleViewUser),
     renderConfirmed,
     renderUsertype,
   );

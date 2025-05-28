@@ -14,7 +14,6 @@ import { RiShieldUserLine } from 'react-icons/ri';
 import { operatorColumns, operatorFormFields } from './operatorConfig';
 import { renderContact, renderActions } from './operatorRenderers';
 import { validateOperatorForm } from './operatorValidation';
-import { useActionMenu } from "@/components/ActionMenu";
 
 function OperatorsPage() {
   const token = localStorage.getItem('token');
@@ -25,9 +24,6 @@ function OperatorsPage() {
   const [currentOperator, setCurrentOperator] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // Using our custom hook instead of inline state/effects
-  const [actionMenuOpen, setActionMenuOpen, menuRefs] = useActionMenu();
-
   const fetchData = useCallback(async (pagingParams) => {
     try {
       const pagingData = {
@@ -124,7 +120,7 @@ function OperatorsPage() {
 
   const columns = operatorColumns(
     renderContact,
-    (_, item) => renderActions(_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation, actionMenuOpen, setActionMenuOpen, menuRefs)
+    (_, item) => renderActions(_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation)
   );
 
   return (

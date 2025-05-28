@@ -1,6 +1,6 @@
 import React from 'react';
-import { FiMail, FiPhone } from 'react-icons/fi';
-import { renderActionMenu } from '@/components/ActionMenu';
+import ActionButtons from '@/components/ActionButtons';
+import { FiMail, FiPhone, FiEye, FiEdit, FiTrash2 } from 'react-icons/fi';
 
 // Custom renderer for contact information
 export const renderContact = (_, item) => {
@@ -18,16 +18,21 @@ export const renderContact = (_, item) => {
   );
 };
 
-// Custom renderer for action buttons - now using shared action menu
-export const renderActions = (_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation, actionMenuOpen, setActionMenuOpen, menuRefs) => {
-  return renderActionMenu(
-    _, 
-    item, 
-    handleViewOperator, 
-    handleEditOperator, 
-    handleDeleteConfirmation, 
-    actionMenuOpen, 
-    setActionMenuOpen, 
-    menuRefs
+// Inline action buttons (no dropdown menu)
+export const renderActions = (
+  _, 
+  item, 
+  handleViewOperator, 
+  handleEditOperator, 
+  handleDeleteConfirmation
+) => {
+  return (
+    <ActionButtons
+      actions={[
+        { onClick: () => handleViewOperator(item), icon: FiEye, title: 'View' },
+        { onClick: () => handleEditOperator(item), icon: FiEdit, title: 'Edit', className: 'hover:bg-blue-100 text-blue-600' },
+        { onClick: () => handleDeleteConfirmation(item), icon: FiTrash2, title: 'Delete', className: 'hover:bg-red-100 text-red-600' },
+      ]}
+    />
   );
 };

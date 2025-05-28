@@ -4,10 +4,16 @@
  */
 
 // Table columns definition
-export const connectorColumns = (renderActions, renderPrice) => [
+export const connectorColumns = (renderActions, renderPrice, renderStatus) => [
   { key: 'id', label: 'ID' },
   { key: 'chargingBayId', label: 'Bay ID' },
   { key: 'connectorType', label: 'Connector Type' },
+  { key: 'connectorName', label: 'Connector Name' },
+  { 
+    key: 'lastStatus', 
+    label: 'Last Status',
+    render: renderStatus
+  },
   { 
     key: 'price', 
     label: 'Price',

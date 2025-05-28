@@ -9,7 +9,6 @@ import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { bayColumns, bayFilterOptions, bayFormFields } from "./bayConfig";
 import { renderStation, renderActions, renderStatus } from "./bayRenderers";
-import { useActionMenu } from "@/components/ActionMenu";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { validateBayForm } from "./bayValidation";
 
@@ -25,8 +24,6 @@ function ChargingBaysPage() {
   const [filters, setFilters]=useState({});
   const [stationOptions, setStationOptions]= useState([])
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const [actionMenuOpen, setActionMenuOpen, menuRefs] = useActionMenu();
 
   useEffect(()=>{
     const loadStations = async () =>{
@@ -158,9 +155,9 @@ function ChargingBaysPage() {
   }, [token, filters, buildFilterString,refreshTrigger]);
 
   const columns = bayColumns(
-    (stationId)=> renderStation(stationId, stations),
+    (stationId) => renderStation(stationId, stations),
     renderStatus,
-      (_, item) => renderActions(_, item, handleViewBay, handleEditBay, handleDeleteConfirmation, actionMenuOpen, setActionMenuOpen, menuRefs)
+    (_, item) => renderActions(_, item, handleViewBay, handleEditBay, handleDeleteConfirmation)
   )
 
   const customTableProps={

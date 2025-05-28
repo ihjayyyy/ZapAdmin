@@ -1,6 +1,7 @@
 import React from 'react';
-import { renderActionMenu } from '@/components/ActionMenu';
 import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import ActionButtons from '@/components/ActionButtons';
+import { FiEye } from 'react-icons/fi';
 
 export const renderConfirmed = (confirmed) => {
     return (
@@ -20,18 +21,14 @@ export const renderConfirmed = (confirmed) => {
     );
 }
 
-export const renderActions = (_, item, handleViewUser, actionMenuOpen, setActionMenuOpen, menuRefs) => {
-  return renderActionMenu(
-    _, 
-    item, 
-    handleViewUser, 
-    null, 
-    null, 
-    actionMenuOpen, 
-    setActionMenuOpen, 
-    menuRefs
-  );
-};
+// Inline action button (no dropdown menu)
+export const renderActions = (_, item, handleViewUser) => (
+  <ActionButtons
+    actions={[
+      { onClick: () => handleViewUser(item), icon: FiEye, title: 'View' },
+    ]}
+  />
+);
 
 export const renderUsertype = (userType) => {
     const userTypeMap = {
@@ -41,5 +38,4 @@ export const renderUsertype = (userType) => {
     };
     
     return userTypeMap[userType] || `Unknown (ID: ${userType})`;
-    
 }

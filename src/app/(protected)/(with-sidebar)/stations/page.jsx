@@ -16,7 +16,6 @@ import DynamicModal from "@/components/DynamicModal";
 import { stationColumns, stationFormFields, stationFilterOptions } from './stationConfig';
 import { renderOperator, renderLocation, renderStatus, renderActions } from './stationRenderers';
 import { validateStationForm } from './stationValidation';
-import { useActionMenu } from "@/components/ActionMenu";
 import { BsEvStation } from "react-icons/bs";
 
 function StationPage() {
@@ -31,9 +30,7 @@ function StationPage() {
   const [filters, setFilters] = useState({});
   const [operatorOptions, setOperatorOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  // Using our custom hook instead of inline state/effects
-  const [actionMenuOpen, setActionMenuOpen, menuRefs] = useActionMenu();
+
 
   // Fetch all operators to map IDs to names
   useEffect(() => {
@@ -201,7 +198,7 @@ function StationPage() {
     (operatorId) => renderOperator(operatorId, operators), 
     renderLocation, 
     renderStatus, 
-    (_, item) => renderActions(_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus, actionMenuOpen, setActionMenuOpen, menuRefs)
+    (_, item) => renderActions(_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus)
   );
 
   const customTableProps = {
