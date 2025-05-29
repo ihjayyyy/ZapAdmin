@@ -49,7 +49,6 @@ export const ChargingSessionGraph = () => {
       }
       
       // Map chargingStatus numbers to labels (based on ChargingStatus enum)
-      console.log(session.chargingStatus)
       switch(session.chargingStatus) {
         case 0: // Pending
           monthlyData[monthKey].Pending++;
@@ -92,15 +91,12 @@ export const ChargingSessionGraph = () => {
       };
       
       const response = await getPagedCharging(pagingData, token);
-      console.log('Charging sessions response:', response);
       const processedData = processChargingSessionsForGraph(response.result);
       
       setData(processedData);
       setError(null);
     } catch (err) {
-      console.error('Error fetching charging sessions:', err);
       setError(err.message);
-      // Fallback to empty data
       setData([]);
     } finally {
       setLoading(false);

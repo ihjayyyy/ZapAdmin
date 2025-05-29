@@ -15,7 +15,8 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
-      const expiry = localStorage.getItem('refreshTokenExpiryTime');
+      const expiry = localStorage.getItem('tokenExpirationDate');
+      console.log(expiry, new Date(), new Date(expiry));
       if (expiry && new Date() > new Date(expiry)) {
         logout();
         return;
@@ -32,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
     // Set up interval to check expiry every minute
     const interval = setInterval(() => {
-      const expiry = localStorage.getItem('refreshTokenExpiryTime');
+      const expiry = localStorage.getItem('tokenExpirationDate');
       if (expiry && new Date() > new Date(expiry)) {
         logout();
       }
@@ -45,7 +46,6 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const data = await loginRequest(email, password);
-
       const userData = {
         id: data.userId,
         name: `${data.firstName} ${data.lastName}`,
@@ -55,10 +55,10 @@ export const AuthProvider = ({ children }) => {
         token: data.token,
         userType: data.userType,
         refreshToken: data.refreshToken,
-        refreshTokenExpiryTime: data.refreshTokenExpiryTime, // <-- add this
+        tokenExpirationDate: data.tokenExpirationDate, // <-- add this
         confirmed: data.confirmed,
       };
-      localStorage.setItem('refreshTokenExpiryTime', data.refreshTokenExpiryTime); // <-- add this
+      localStorage.setItem('tokenExpirationDate', data.tokenExpirationDate); // <-- add this
 
       if (!data.confirmed) {
         localStorage.setItem('token', data.token);
