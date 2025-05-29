@@ -11,8 +11,8 @@ export const stationColumns = (renderOperator, renderLocation, renderStatus, ren
     label: 'Operator',
     render: renderOperator
   },
-  { key: 'name', label: 'Name' },
-  { key: 'address', label: 'Address' },
+  { key: 'name', label: 'Name',className: 'max-column-width'  },
+  { key: 'address', label: 'Address', className: 'max-column-width' },
   {
     key: 'location',
     label: 'Location',

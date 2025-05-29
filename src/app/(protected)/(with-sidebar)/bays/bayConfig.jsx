@@ -3,6 +3,8 @@ import { Abel } from "next/font/google";
 export const bayColumns = (renderStation, renderStatus, renderActions)=>[
     {key: 'id', label: 'ID'},
     {key: 'stationId', label: 'Station', render: renderStation},
+    {key: 'code', label: 'Code'},
+    {key: 'stationKey', label: 'Station Key'},
     {key: 'maxPower', label:'Max Power'},
     {key: 'status', label:'Status', render:renderStatus},
     { key: 'actions', label: 'Actions', render: renderActions }

@@ -181,7 +181,11 @@ function DynamicTable({
                 data.map((item, index) => (
                   <tr key={index} className={index % 2 ? "bg-deepblue-100 text-sm" : "text-sm"}>
                     {columns.map((column) => (
-                      <td key={column.key} className="p-1.5">
+                      <td
+                        key={column.key}
+                        className={`p-1.5 ${column.key !== 'actions' ? 'max-column-width' : ''} ${column.className || ''}`}
+                        title={item[column.key] && typeof item[column.key] === 'string' ? item[column.key] : undefined}
+                      >
                         {column.render ? (
                           column.render(item[column.key], item)
                         ) : (

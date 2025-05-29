@@ -6,7 +6,7 @@ const ActionButtons = ({ actions }) => (
       <button
         key={idx}
         onClick={onClick}
-        className={`p-1 rounded ${className || 'hover:bg-stone-200'}`}
+        className={`cursor-pointer p-1 rounded ${className || 'hover:bg-stone-200'}`}
         title={title}
         type="button"
       >

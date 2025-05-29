@@ -1,6 +1,6 @@
 export const usersColumns = (renderActions, renderConfirmed, renderUsertype) => [
-    {key: 'email', label: 'Email'},
-    {key: 'userName', label: 'User Name'},
+    {key: 'email', label: 'Email',  className: 'max-column-width'},
+    {key: 'userName', label: 'User Name',  className: 'max-column-width'},
     {key: 'firstName', label: 'First Name'},
     {key: 'lastName', label: 'Last Name'},
     {key: 'userType', label: 'User Type', render: renderUsertype},

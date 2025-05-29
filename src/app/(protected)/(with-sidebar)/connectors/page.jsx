@@ -127,7 +127,7 @@ function ConnectorsPage() {
       };
       
       const response = await getPagedConnectors(pagingData, token);
-      
+      console.log('Fetched connectors:', response);
       return {
         data: response.result || [],
         totalItems: response.Pagination?.length || 0
