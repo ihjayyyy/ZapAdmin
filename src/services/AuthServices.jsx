@@ -17,6 +17,23 @@ export const loginRequest = async (email, password) => {
   return data;
 };
 
+export const refreshTokenRequest = async (accessToken, refreshToken) => {
+  const response = await fetch(`${apiUrl}Auth/refreshToken`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ accessToken, refreshToken }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Refresh token failed');
+  }
+
+  return data;
+};
+
 export const validateAccount = async (userId, otp) => {
   const response = await fetch(`${apiUrl}Auth/validate`, {
     method: 'POST',

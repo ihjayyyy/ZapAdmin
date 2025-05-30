@@ -72,7 +72,6 @@ function ChargingBayStatusChart() {
           .sort((a, b) => b.value - a.value); // Sort by value descending
         
         setData(chartData);
-        console.log("Charging Bay Chart Data:", chartData);
       } catch (err) {
         setError(err.message);
       } finally {
