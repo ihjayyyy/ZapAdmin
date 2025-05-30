@@ -104,14 +104,11 @@ function ConnectorsPage() {
     if (additionalFilters.connectorType) {
       filterArray.push(`connectorType=${additionalFilters.connectorType}`);
     }
-    
-    if (additionalFilters.priceMin !== undefined && additionalFilters.priceMin !== '') {
-      filterArray.push(`priceMin=${additionalFilters.priceMin}`);
+
+    if (additionalFilters.lastStatus) {
+      filterArray.push(`lastStatus=${additionalFilters.lastStatus}`);
     }
     
-    if (additionalFilters.priceMax !== undefined && additionalFilters.priceMax !== '') {
-      filterArray.push(`priceMax=${additionalFilters.priceMax}`);
-    }
     
     return filterArray;
   }, []);

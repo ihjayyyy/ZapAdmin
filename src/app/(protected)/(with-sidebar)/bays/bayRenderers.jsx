@@ -7,35 +7,51 @@ export const renderStation = (stationId, stations) =>{
 }
 
 export const renderStatus = (status) => {
+  // Normalize status to string for mapping
+  let normalized = status;
+  if (typeof status === 'number') {
+    // Map number to string
+    switch (status) {
+      case 1: normalized = 'Available'; break;
+      case 2: normalized = 'Occupied'; break;
+      case 3: normalized = 'Unavailable'; break;
+      case 4: normalized = 'Faulted'; break;
+      default: normalized = 'Undefined';
+    }
+  }
+  if (typeof normalized === 'string') {
+    normalized = normalized.trim().toLowerCase();
+  }
+
   const statusConfig = {
-    0: {
+    undefined: {
       icon: <FiHelpCircle className="text-gray-500" size={14} />,
       text: "Undefined",
       textColor: "text-gray-600"
     },
-    1: {
+    available: {
       icon: <FiCheckCircle className="text-green-500" size={14} />,
       text: "Available",
       textColor: "text-green-600"
     },
-    2: {
+    occupied: {
       icon: <FiClock className="text-yellow-500" size={14} />,
       text: "Occupied",
       textColor: "text-yellow-600"
     },
-    3: {
+    unavailable: {
       icon: <FiXCircle className="text-red-500" size={14} />,
       text: "Unavailable",
       textColor: "text-red-600"
     },
-    4: {
+    faulted: {
       icon: <FiAlertCircle className="text-orange-500" size={14} />,
       text: "Faulted",
       textColor: "text-orange-600"
     }
   };
 
-  const config = statusConfig[status] || statusConfig[0];
+  const config = statusConfig[normalized] || statusConfig['undefined'];
 
   return (
     <div className="flex items-center gap-1">

@@ -80,4 +80,16 @@ export const connectorFilterOptions = (connectorTypeOptions, chargingBayOptions)
     label: 'Connector Type',
     options: connectorTypeOptions
   },
+  {
+    type: 'select',
+    name: 'lastStatus',
+    label: 'Status',
+    options: [
+      { id: 'Available', name: 'Available' },
+      { id: 'Unavailable', name: 'Unavailable' },
+      { id: 'Faulted', name: 'Faulted' },
+      { id: 'Occupied', name: 'Occupied' },
+      { id: 'Unknown', name: 'Unknown' }
+    ]
+  }
 ];
