@@ -17,8 +17,10 @@ import { stationColumns, stationFormFields, stationFilterOptions } from './stati
 import { renderOperator, renderLocation, renderStatus, renderActions } from './stationRenderers';
 import { validateStationForm } from './stationValidation';
 import { BsEvStation } from "react-icons/bs";
+import { useAuth } from "@/context/AuthContext";
 
 function StationPage() {
+  const { user } = useAuth(); 
   const token = localStorage.getItem('token');
   const [operators, setOperators] = useState({});
   const [loading, setLoading] = useState(true);
@@ -155,19 +157,29 @@ function StationPage() {
     setShowFilterModal(false);
   };
 
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem('operatorId');
+
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
+    // Start with any existing filters
     const filterArray = [...(baseFilters || [])];
-    
+
+    // Add filter from additionalFilters if provided
     if (additionalFilters.operatorId) {
       filterArray.push(`operatorId=${additionalFilters.operatorId}`);
     }
-    
     if (additionalFilters.active !== undefined) {
       filterArray.push(`active=${additionalFilters.active}`);
     }
+
+    if (isOperator && operatorId) {
+      if (!filterArray.some(f => f.startsWith("operatorId="))) {
+        filterArray.push(`operatorId=${operatorId}`);
+      }
+    }
     
     return filterArray;
-  }, []);
+  }, [isOperator, operatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {

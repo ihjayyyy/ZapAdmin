@@ -12,11 +12,16 @@ import {
   LineChart,
 } from "recharts";
 import { getPagedCharging } from "@/services/ChargingSessions";
+import { useAuth } from "@/context/AuthContext";
 
 export const ChargingSessionGraph = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth(); 
+  const token = localStorage.getItem('token');
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem('operatorId');
   
   // Date state for calendar inputs
   const [dateFrom, setDateFrom] = useState(() => {
@@ -42,21 +47,49 @@ export const ChargingSessionGraph = () => {
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = {
           name: monthKey,
-          Pending: 0,
+          Available: 0,
+          Preparing: 0,
           Charging: 0,
+          SuspendedEVSE: 0,
+          SuspendedEV: 0,
+          Finishing: 0,
+          Reserved: 0,
+          Unavailable: 0,
+          Faulted: 0,
           Completed: 0
         };
       }
       
-      // Map chargingStatus numbers to labels (based on ChargingStatus enum)
+      // Map chargingStatus numbers to correct enum labels
       switch(session.chargingStatus) {
-        case 0: // Pending
-          monthlyData[monthKey].Pending++;
+        case 0:
+          monthlyData[monthKey].Available++;
           break;
-        case 1: // Charging  
+        case 1:
+          monthlyData[monthKey].Preparing++;
+          break;
+        case 2:
           monthlyData[monthKey].Charging++;
           break;
-        case 2: // Completed
+        case 3:
+          monthlyData[monthKey].SuspendedEVSE++;
+          break;
+        case 4:
+          monthlyData[monthKey].SuspendedEV++;
+          break;
+        case 5:
+          monthlyData[monthKey].Finishing++;
+          break;
+        case 6:
+          monthlyData[monthKey].Reserved++;
+          break;
+        case 7:
+          monthlyData[monthKey].Unavailable++;
+          break;
+        case 8:
+          monthlyData[monthKey].Faulted++;
+          break;
+        case 9:
           monthlyData[monthKey].Completed++;
           break;
         default:
@@ -77,8 +110,6 @@ export const ChargingSessionGraph = () => {
     try {
       setLoading(true);
       
-      const token = localStorage.getItem('token');
-      
       const pagingData = {
         filter: [
           `dateFrom=${startDateStr}`,
@@ -89,6 +120,11 @@ export const ChargingSessionGraph = () => {
         sortField: "ChargingStart",
         sortAscending: true
       };
+      
+      // If the user is an operator, add a filter for operatorId.
+      if (isOperator && operatorId) {
+        pagingData.filter.push(`operatorId=${operatorId}`);
+      }
       
       const response = await getPagedCharging(pagingData, token);
       const processedData = processChargingSessionsForGraph(response.result);
@@ -138,7 +174,7 @@ export const ChargingSessionGraph = () => {
 
   if (loading) {
     return (
-      <div className="col-span-8 overflow-hidden rounded border border-stone-300">
+      <div className="col-span-12 overflow-hidden rounded border border-stone-300">
         <div className="p-4">
           <h3 className="flex items-center gap-1.5 font-medium">
             <FiUser /> Charging Sessions Activity
@@ -153,7 +189,7 @@ export const ChargingSessionGraph = () => {
 
   if (error) {
     return (
-      <div className="col-span-8 overflow-hidden rounded border border-stone-300">
+      <div className="col-span-12 overflow-hidden rounded border border-stone-300">
         <div className="p-4">
           <h3 className="flex items-center gap-1.5 font-medium">
             <FiUser /> Charging Sessions Activity
@@ -256,23 +292,76 @@ export const ChargingSessionGraph = () => {
                 wrapperClassName="text-sm rounded"
                 labelClassName="text-xs text-stone-500"
                 />
-                <Line
-                type="monotone"
-                dataKey="Pending"
-                stroke="#f59e0b"
-                fill="#f59e0b"
-                />
+                {/* Most important statuses with distinct colors */}
                 <Line
                 type="monotone"
                 dataKey="Charging"
                 stroke="#3b82f6"
-                fill="#3b82f6"
+                strokeWidth={2}
+                dot={{ r: 4 }}
                 />
                 <Line
                 type="monotone"
                 dataKey="Completed"
                 stroke="#10b981"
-                fill="#10b981"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Available"
+                stroke="#6b7280"
+                strokeWidth={1.5}
+                dot={{ r: 3 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Preparing"
+                stroke="#f59e0b"
+                strokeWidth={1.5}
+                dot={{ r: 3 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Finishing"
+                stroke="#8b5cf6"
+                strokeWidth={1.5}
+                dot={{ r: 3 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Reserved"
+                stroke="#06b6d4"
+                strokeWidth={1.5}
+                dot={{ r: 3 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Faulted"
+                stroke="#ef4444"
+                strokeWidth={1.5}
+                dot={{ r: 3 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="Unavailable"
+                stroke="#9ca3af"
+                strokeWidth={1}
+                dot={{ r: 2 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="SuspendedEVSE"
+                stroke="#f97316"
+                strokeWidth={1}
+                dot={{ r: 2 }}
+                />
+                <Line
+                type="monotone"
+                dataKey="SuspendedEV"
+                stroke="#eab308"
+                strokeWidth={1}
+                dot={{ r: 2 }}
                 />
             </LineChart>
             </ResponsiveContainer>

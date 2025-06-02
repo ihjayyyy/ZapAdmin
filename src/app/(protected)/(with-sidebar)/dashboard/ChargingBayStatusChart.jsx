@@ -9,14 +9,15 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { getAllChargingBays } from "@/services/ChargingBayServices";
+import { useAuth } from "@/context/AuthContext";
+import { getAllChargingBays, getChargingBaysByOperatorId } from "@/services/ChargingBayServices";
 
 const STATUS_COLORS = {
-  Undefined: "#6B7280", // Gray
-  Available: "#10B981", // Green
-  Occupied: "#EAB308", // Yellow
+  Undefined: "#6B7280",  // Gray
+  Available: "#10B981",  // Green
+  Occupied: "#EAB308",   // Yellow
   Unavailable: "#EF4444", // Red
-  Faulted: "#F97316", // Orange
+  Faulted: "#F97316",     // Orange
 };
 
 const STATUS_LABELS = {
@@ -34,22 +35,24 @@ function ChargingBayStatusChart() {
   const [totalBays, setTotalBays] = useState(0);
 
   const token = localStorage.getItem("token");
+  const { user } = useAuth();
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem("operatorId");
   
   useEffect(() => {
     const fetchChargingBaysData = async () => {
       try {
         setLoading(true);
-        const chargingBays = await getAllChargingBays(token);
+        let chargingBays = [];
+        if (isOperator) {
+          // For operators, fetch charging bays by operatorId
+          chargingBays = await getChargingBaysByOperatorId(operatorId, token);
+        } else {
+          chargingBays = await getAllChargingBays(token);
+        }
         
         // Count charging bays by status
-        const statusCounts = {
-          0: 0, // Undefined
-          1: 0, // Available
-          2: 0, // Occupied
-          3: 0, // Unavailable
-          4: 0  // Faulted
-        };
-        
+        const statusCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
         chargingBays.forEach(bay => {
           const status = bay.status !== undefined ? bay.status : 0;
           if (statusCounts.hasOwnProperty(status)) {
@@ -68,8 +71,8 @@ function ChargingBayStatusChart() {
             status: parseInt(status),
             percentage: total > 0 ? Math.round((count / total) * 100) : 0
           }))
-          .filter(item => item.value > 0) // Only show categories with data
-          .sort((a, b) => b.value - a.value); // Sort by value descending
+          .filter(item => item.value > 0)
+          .sort((a, b) => b.value - a.value);
         
         setData(chartData);
       } catch (err) {
@@ -82,16 +85,16 @@ function ChargingBayStatusChart() {
     if (token) {
       fetchChargingBaysData();
     }
-  }, [token]);
+  }, [token, isOperator, operatorId]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const data = payload[0];
+      const dataPoint = payload[0];
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="text-sm font-semibold text-gray-800">{data.payload.name}</p>
+          <p className="text-sm font-semibold text-gray-800">{dataPoint.payload.name}</p>
           <p className="text-sm text-gray-600">
-            {data.payload.value} bays ({data.payload.percentage}%)
+            {dataPoint.payload.value} bays ({dataPoint.payload.percentage}%)
           </p>
         </div>
       );
@@ -99,9 +102,9 @@ function ChargingBayStatusChart() {
     return null;
   };
 
-  // Custom label rendering function for percentages on the chart
+  // Custom label rendering function for percentages
   const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }) => {
-    if (percentage < 5) return null; // Don't show labels for very small slices
+    if (percentage < 5) return null; // Hide small slices
     
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -125,7 +128,7 @@ function ChargingBayStatusChart() {
 
   if (loading) {
     return (
-      <div className="col-span-12 lg:col-span-4 overflow-hidden rounded border border-stone-300">
+      <div className={`col-span-12 ${isOperator ? 'lg:col-span-6' : 'lg:col-span-4'} overflow-hidden rounded border border-stone-300`}>
         <div className="px-4 pt-4">
           <h3 className="flex items-center gap-1.5 font-medium">
             <BsEvStation /> Charging Bay Status
@@ -140,7 +143,7 @@ function ChargingBayStatusChart() {
 
   if (error) {
     return (
-      <div className="col-span-12 lg:col-span-4 overflow-hidden rounded border border-stone-300">
+      <div className={`col-span-12 ${isOperator ? 'lg:col-span-6' : 'lg:col-span-4'} overflow-hidden rounded border border-stone-300`}>
         <div className="px-4 pt-4">
           <h3 className="flex items-center gap-1.5 font-medium">
             <BsEvStation /> Charging Bay Status
@@ -155,7 +158,7 @@ function ChargingBayStatusChart() {
 
   if (data.length === 0) {
     return (
-      <div className="col-span-12 lg:col-span-4 overflow-hidden rounded border border-stone-300">
+      <div className={`col-span-12 ${isOperator ? 'lg:col-span-6' : 'lg:col-span-4'} overflow-hidden rounded border border-stone-300`}>
         <div className="px-4 pt-4">
           <h3 className="flex items-center gap-1.5 font-medium">
             <BsEvStation /> Charging Bay Status
@@ -169,7 +172,7 @@ function ChargingBayStatusChart() {
   }
 
   return (
-    <div className="col-span-12 lg:col-span-4 overflow-hidden rounded border border-stone-300 bg-white">
+    <div className={`col-span-12 ${isOperator ? 'lg:col-span-6' : 'lg:col-span-4'} overflow-hidden rounded border border-stone-300 bg-white`}>
       <div className="px-4 pt-4">
         <h3 className="flex items-center gap-1.5 font-medium text-gray-800">
           <BsEvStation /> Charging Bay Status
@@ -177,7 +180,6 @@ function ChargingBayStatusChart() {
       </div>
 
       <div className="px-4 pb-6">
-        {/* Donut Chart */}
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -202,21 +204,16 @@ function ChargingBayStatusChart() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-
-        {/* Legend with counts */}
         <div className="flex items-center gap-3">
           {data.map((entry, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-sm font-medium text-gray-600">
-                  {entry.name} - {entry.value.toLocaleString()}
-                </span>
-              </div>
-
+            <div key={index} className="flex items-center gap-3">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-sm font-medium text-gray-600">
+                {entry.name} - {entry.value.toLocaleString()}
+              </span>
             </div>
           ))}
         </div>

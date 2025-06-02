@@ -8,8 +8,10 @@ import EntityFormModal from "@/components/EntityFormModal";
 import { chargingColumns, chargingSessionsFilterOptions, chargingSessionsFormFields } from "./ChargingSessionsConfig";
 import { renderViewAction,renderDate,renderSessionDetails,renderStatus } from "./ChargingSessionsRenderers";
 import { BsBattery } from "react-icons/bs";
+import { useAuth } from "@/context/AuthContext";
 
 function ChargingSessionsPage() {
+  const { user } = useAuth(); 
   const token = localStorage.getItem('token');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -30,6 +32,9 @@ function ChargingSessionsPage() {
     setFilters({});
     setShowFilterModal(false);
   }
+
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem('operatorId');
 
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
@@ -52,6 +57,12 @@ function ChargingSessionsPage() {
 
     if (additionalFilters.endDate) {
       filterArray.push(`chargingEnd<=${additionalFilters.endDate}`);
+    }
+
+    if (isOperator && operatorId) {
+      if (!filterArray.some(f => f.startsWith("operatorId="))) {
+        filterArray.push(`operatorId=${operatorId}`);
+      }
     }
     
     return filterArray;

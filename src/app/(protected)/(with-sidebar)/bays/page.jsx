@@ -11,9 +11,11 @@ import { bayColumns, bayFilterOptions, bayFormFields } from "./bayConfig";
 import { renderStation, renderActions, renderStatus } from "./bayRenderers";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { validateBayForm } from "./bayValidation";
+import { useAuth } from "@/context/AuthContext";
 
 function ChargingBaysPage() {
   const token = localStorage.getItem('token');
+  const { user } = useAuth(); 
   const [stations, setStations]=useState({});
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -115,6 +117,9 @@ function ChargingBaysPage() {
     setFilters({});
   };
 
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem('operatorId');
+
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
     
@@ -124,6 +129,12 @@ function ChargingBaysPage() {
     
     if (additionalFilters.status !== undefined) {
       filterArray.push(`status=${additionalFilters.status}`);
+    }
+
+    if (isOperator && operatorId) {
+      if (!filterArray.some(f => f.startsWith("operatorId="))) {
+        filterArray.push(`operatorId=${operatorId}`);
+      }
     }
     
     return filterArray;

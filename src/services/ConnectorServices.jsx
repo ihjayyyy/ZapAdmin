@@ -168,3 +168,25 @@ export const getPagedConnectors = async (pagingData, token) => {
 
   return data;
 };
+
+/**
+ * Get connectors filtered by operatorId
+ * @param {string} operatorId - ID of the operator
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array>} - List of connectors for the specified operator
+ */
+export const getConnectorByOperatorId = async (operatorId, token) => {
+  const response = await fetch(`${apiUrl}Connector/ByOperator/${operatorId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch connectors for operator');
+  }
+
+  return data;
+};

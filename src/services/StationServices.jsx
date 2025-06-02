@@ -193,3 +193,25 @@ export const toggleStationActivate = async (stationId, token) => {
 
   return data;
 };
+
+/**
+ * Get Stations filtered by operatorId
+ * @param {string} operatorId - ID of the operator
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array>} - List of Stations for the specified operator
+ */
+export const getStationByOperatorId = async (operatorId, token) => {
+  const response = await fetch(`${apiUrl}Station/ByOperator/${operatorId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch Stations for operator');
+  }
+
+  return data;
+};

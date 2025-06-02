@@ -146,3 +146,25 @@ export const getPagedChargingBays = async (pagingData, token) => {
 
   return data;
 };
+
+/**
+ * Get charging bays filtered by operatorId
+ * @param {string} operatorId - ID of the operator
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array>} - List of charging bays for the specified operator
+ */
+export const getChargingBaysByOperatorId = async (operatorId, token) => {
+  const response = await fetch(`${apiUrl}ChargingBay/ByOperator/${operatorId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch charging bays for operator');
+  }
+
+  return data;
+};

@@ -14,9 +14,11 @@ import DynamicModal from "@/components/DynamicModal";
 import { connectorColumns, connectorFormFields, connectorFilterOptions } from './connectorConfig';
 import { renderPrice, renderActions, renderStatus } from './connectorRenderers';
 import { BsPlug } from "react-icons/bs";
+import { useAuth } from "@/context/AuthContext";
 
 function ConnectorsPage() {
   const token = localStorage.getItem('token');
+  const { user } = useAuth(); 
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -94,6 +96,9 @@ function ConnectorsPage() {
     setFilters({});
   };
 
+  const isOperator = user?.userType === 2;
+  const operatorId = localStorage.getItem('operatorId');
+
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
     
@@ -109,6 +114,11 @@ function ConnectorsPage() {
       filterArray.push(`lastStatus=${additionalFilters.lastStatus}`);
     }
     
+    if (isOperator && operatorId) {
+      if (!filterArray.some(f => f.startsWith("operatorId="))) {
+        filterArray.push(`operatorId=${operatorId}`);
+      }
+    }
     
     return filterArray;
   }, []);

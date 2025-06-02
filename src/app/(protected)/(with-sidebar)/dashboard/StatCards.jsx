@@ -8,12 +8,17 @@ import { MdOutlineElectricCar } from "react-icons/md";
 import { PiPlugChargingBold } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 
-import { getAllChargingBays } from "@/services/ChargingBayServices";
-import { getAllConnectors } from "@/services/ConnectorServices";
+import { getAllChargingBays, getChargingBaysByOperatorId } from "@/services/ChargingBayServices";
+import { getAllConnectors, getConnectorByOperatorId } from "@/services/ConnectorServices";
 import { getAllOperators } from "@/services/OperatorServices";
-import { getAllStations } from "@/services/StationServices";
+import { getAllStations, getStationByOperatorId } from "@/services/StationServices";
+import { useAuth } from "@/context/AuthContext";
 
 function StatCards() {
+  const { user } = useAuth();
+  const isOperator = user?.userType === 2;
+  const token = localStorage.getItem('token');
+  const operatorId = localStorage.getItem('operatorId');
   const [stats, setStats] = useState({
     chargingBays: 0,
     connectors: 0,
@@ -23,23 +28,40 @@ function StatCards() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [chargingBays, connectors, operators, stations] = await Promise.all([
-        getAllChargingBays(),
-        getAllConnectors(),
-        getAllOperators(),
-        getAllStations()
-      ]);
+      if (isOperator) {
+        // Using operator-specific endpoints:
+        const [chargingBays, connectors, stations] = await Promise.all([
+          getChargingBaysByOperatorId(operatorId, token),
+          getConnectorByOperatorId(operatorId, token),
+          getStationByOperatorId(operatorId, token)
+        ]);
 
-      setStats({
-        chargingBays: chargingBays.length,
-        connectors: connectors.length,
-        operators: operators.length,
-        stations: stations.length
-      });
+        setStats({
+          chargingBays: chargingBays.length,
+          connectors: connectors.length,
+          operators: 0, // Operators card is not used for operators
+          stations: stations.length
+        });
+      } else {
+        // Default endpoints for admin users:
+        const [chargingBays, connectors, operators, stations] = await Promise.all([
+          getAllChargingBays(token),
+          getAllConnectors(token),
+          getAllOperators(token),
+          getAllStations(token)
+        ]);
+
+        setStats({
+          chargingBays: chargingBays.length,
+          connectors: connectors.length,
+          operators: operators.length,
+          stations: stations.length
+        });
+      }
     };
 
     fetchData();
-  }, []);
+  }, [isOperator, token, user]);
 
   const cards = [
     {
@@ -56,7 +78,7 @@ function StatCards() {
       href: '/stations',
       color: 'deepblue'
     },
-        {
+    {
       title: 'Charging Bays',
       value: stats.chargingBays,
       icon: MdOutlineElectricCar,
@@ -72,16 +94,19 @@ function StatCards() {
     },
   ];
 
+  // If the user is an operator, filter out the Operators card
+  const filteredCards = isOperator ? cards.filter(card => card.title !== 'Operators') : cards;
+
   return (
     <>
-      {cards.map((card, index) => (
-        <Card key={index} {...card} />
+      {filteredCards.map((card, index) => (
+        <Card key={index} isOperator={isOperator} {...card} />
       ))}
     </>
   );
 }
 
-function Card({ title, value, icon: Icon, href, color }) {
+function Card({ title, value, icon: Icon, href, color, isOperator }) {
   const router = useRouter();
 
   const handleRedirect = () => {
@@ -102,7 +127,7 @@ function Card({ title, value, icon: Icon, href, color }) {
   const colors = colorConfig[color] || colorConfig.deepblue;
 
   return (
-    <div className="col-span-6 lg:col-span-3 p-6 rounded-lg border border-stone-200 bg-white hover:shadow-lg transition-all duration-200 hover:border-stone-300">
+    <div className={`col-span-6 ${isOperator ? 'lg:col-span-4' : 'lg:col-span-3'} p-6 rounded-lg border border-stone-200 bg-white hover:shadow-lg transition-all duration-200 hover:border-stone-300`}>
       <div className="flex mb-6 items-center justify-between">
         <h3 className="text-stone-600 text-sm font-medium">{title}</h3>
         <span className={`p-2 rounded-lg ${colors.iconBg}`}>

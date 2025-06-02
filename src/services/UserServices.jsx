@@ -43,6 +43,7 @@ export const getPagedUsers = async (pagingData, token) => {
   });
 
   const data = await response.json();
+  console.log('getPagedUsers response:', data);
   if (!response.ok) {
     throw new Error(data.message || 'Failed to fetch paginated users');
   }

@@ -28,3 +28,25 @@ export const getPagedCharging = async (pagingData, token) => {
 
   return data;
 };
+
+/**
+ * Get Charging filtered by operatorId
+ * @param {string} operatorId - ID of the operator
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array>} - List of Charging for the specified operator
+ */
+export const getChargingByOperatorId = async (operatorId, token) => {
+  const response = await fetch(`${apiUrl}Charging/ByOperator/${operatorId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch Charging for operator');
+  }
+
+  return data;
+};

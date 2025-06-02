@@ -3,10 +3,13 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { loginRequest, refreshTokenRequest } from '@/services/AuthServices';
+import { getUserOperatorsByUser } from '@/services/UserOperatorServices';
+import { useRouter } from 'next/navigation';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -144,6 +147,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const data = await loginRequest(email, password);
+
+      // Build base userData
       const userData = {
         id: data.userId,
         name: `${data.firstName} ${data.lastName}`,
@@ -153,10 +158,10 @@ export const AuthProvider = ({ children }) => {
         token: data.token,
         userType: data.userType,
         refreshToken: data.refreshToken,
-        tokenExpirationDate: data.tokenExpirationDate, // <-- add this
+        tokenExpirationDate: data.tokenExpirationDate,
         confirmed: data.confirmed,
       };
-      localStorage.setItem('tokenExpirationDate', data.tokenExpirationDate); // <-- add this
+      localStorage.setItem('tokenExpirationDate', data.tokenExpirationDate);
 
       if (!data.confirmed) {
         localStorage.setItem('token', data.token);
@@ -168,10 +173,21 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data.userType === 0 || data.userType === 2) {
+        // Store tokens and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('user', JSON.stringify(userData));
 
+        // If the user is an Operator, fetch operatorId from UserOperatorServices
+        if (data.userType === 2) {
+          const userOperators = await getUserOperatorsByUser(data.userId, data.token);
+          if (userOperators && userOperators.length > 0) {
+            const operatorId = userOperators[0].operatorId; // assuming you use the first record
+            localStorage.setItem('operatorId', operatorId);
+            userData.operatorId = operatorId;
+          }
+        }
+        
+        localStorage.setItem('user', JSON.stringify(userData));
         setIsAuthenticated(true);
         setUser(userData);
         return true;
@@ -180,13 +196,13 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         return false;
       }
-
     } catch (err) {
       console.error('Login error:', err);
-      if(err == `Unexpected token 'I', "Invalid User." is not valid JSON`){
-        setError('Login failed. Check your username and password.')
+      if (err.message === "Unexpected token 'I', \"Invalid User.\" is not valid JSON") {
+        setError('Login failed. Check your username and password.');
+      } else {
+        setError(err.message || 'An error occurred during login. Please try again.');
       }
-      setError(err.message || 'An error occurred during login. Please try again.');
       return false;
     } finally {
       setIsLoading(false);
@@ -199,6 +215,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('tokenExpirationDate');
+    router.replace('/login'); // Redirect to login page
   };
 
   return (
