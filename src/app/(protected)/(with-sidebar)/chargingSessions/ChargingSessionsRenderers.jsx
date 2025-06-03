@@ -1,33 +1,10 @@
 import React from 'react';
 import { FiClock, FiCheckCircle, FiXCircle, FiPlay, FiPause, FiEye } from 'react-icons/fi';
-import ActionButtons from '@/components/ActionButtons'; // <-- Import ActionButtons
+import ActionButtons from '@/components/ActionButtons';
+import StatusChip from '@/components/StatusChip';
 
 export const renderStatus = (chargingStatus) => {
-    const statusConfig = {
-        0: { icon: FiClock, color: 'text-yellow-600', bgColor: 'bg-yellow-100', label: 'Pending' },
-        1: { icon: FiPlay, color: 'text-blue-600', bgColor: 'bg-blue-100', label: 'In Progress' },
-        2: { icon: FiCheckCircle, color: 'text-green-600', bgColor: 'bg-green-100', label: 'Completed' },
-        3: { icon: FiXCircle, color: 'text-red-600', bgColor: 'bg-red-100', label: 'Failed' },
-        4: { icon: FiPause, color: 'text-gray-600', bgColor: 'bg-gray-100', label: 'Cancelled' }
-    };
-
-    const config = statusConfig[chargingStatus] || { 
-        icon: FiClock, 
-        color: 'text-gray-600', 
-        bgColor: 'bg-gray-100', 
-        label: `Unknown (${chargingStatus})` 
-    };
-
-    const IconComponent = config.icon;
-
-    return (
-        <div className={`flex items-center gap-2 px-2 py-1 rounded-full ${config.bgColor} w-fit`}>
-            <IconComponent className={config.color} size={14} />
-            <span className={`text-sm font-medium ${config.color}`}>
-                {config.label}
-            </span>
-        </div>
-    );
+  return <StatusChip status={chargingStatus} />;
 };
 
 export const renderDate = (dateString) => {

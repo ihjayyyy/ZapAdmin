@@ -1,6 +1,7 @@
 import React from 'react';
-import { FiEye, FiTrash2, FiCheckCircle, FiXCircle, FiHelpCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiEye, FiTrash2 } from 'react-icons/fi';
 import ActionButtons from '@/components/ActionButtons';
+import StatusChip from '@/components/StatusChip';
 
 // Custom renderer for price formatting
 export const renderPrice = (price) => {
@@ -11,42 +12,8 @@ export const renderPrice = (price) => {
   );
 };
 
-// Improved status renderer for string status values
-export const renderStatus = (status) => {
-  console.log('renderStatus:', status)
-  const normalized = (status || '').toString().toLowerCase();
-
-  const statusConfig = {
-    unknown: {
-      icon: <FiHelpCircle className="text-gray-500" size={14} />,
-      text: "Unknown",
-      textColor: "text-gray-600"
-    },
-    available: {
-      icon: <FiCheckCircle className="text-green-500" size={14} />,
-      text: "Available",
-      textColor: "text-green-600"
-    },
-    unavailable: {
-      icon: <FiXCircle className="text-red-500" size={14} />,
-      text: "Unavailable",
-      textColor: "text-red-600"
-    },
-    faulted: {
-      icon: <FiAlertCircle className="text-orange-500" size={14} />,
-      text: "Faulted",
-      textColor: "text-orange-600"
-    }
-  };
-
-  const config = statusConfig[normalized] || statusConfig['unknown'];
-
-  return (
-    <div className="flex items-center gap-1">
-      {config.icon}
-      <span className={config.textColor}>{config.text}</span>
-    </div>
-  );
+export const renderStatus = (chargingStatus) => {
+  return <StatusChip status={chargingStatus} />;
 };
 
 // Inline action buttons using ActionButtons

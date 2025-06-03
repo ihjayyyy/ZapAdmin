@@ -1,7 +1,8 @@
 import React from 'react';
 import { TbWorldLatitude, TbWorldLongitude } from "react-icons/tb";
-import { FiCheckCircle, FiXCircle, FiEye, FiEdit, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { FiEye, FiEdit, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
 import ActionButtons from '@/components/ActionButtons';
+import StatusChip from '@/components/StatusChip';
 
 // Custom renderer for operator information
 export const renderOperator = (operatorId, operators) => {
@@ -28,23 +29,8 @@ export const renderLocation = (_, item) => {
   );
 };
 
-// Custom renderer for active status
 export const renderStatus = (active) => {
-  return (
-    <div className="flex items-center gap-1">
-      {active ? (
-        <>
-          <FiCheckCircle className="text-green-500" size={14} />
-          <span className="text-green-600">Active</span>
-        </>
-      ) : (
-        <>
-          <FiXCircle className="text-red-500" size={14} />
-          <span className="text-red-600">Inactive</span>
-        </>
-      )}
-    </div>
-  );
+  return <StatusChip status={active ? 'available' : 'unavailable'} />;
 };
 
 // Custom renderer for action buttons - now using ActionButtons

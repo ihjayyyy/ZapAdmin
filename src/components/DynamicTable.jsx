@@ -179,7 +179,7 @@ function DynamicTable({
                 </tr>
               ) : data.length > 0 ? (
                 data.map((item, index) => (
-                  <tr key={index} className={index % 2 ? "bg-deepblue-100 text-sm" : "text-sm"}>
+                  <tr key={index} className={index % 2 ? "bg-deepblue-50 text-sm" : "text-sm"}>
                     {columns.map((column) => (
                       <td
                         key={column.key}
