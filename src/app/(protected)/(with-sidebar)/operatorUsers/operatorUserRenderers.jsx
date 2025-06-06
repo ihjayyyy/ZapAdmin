@@ -11,7 +11,7 @@ export const renderUser = (userId, users) => {
   if (!user) return `Unknown (ID: ${userId})`;
   
   // Display userName, or fallback to firstName + lastName
-  return user.userName || `${user.firstName} ${user.lastName}`.trim() || `User ${userId}`;
+  return `${user.firstName} ${user.lastName}`.trim() || `User ${userId}`;
 };
 
 export const renderActions = (

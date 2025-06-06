@@ -23,7 +23,7 @@ export const operatorUserFormFields = [
   },
 ];
 
-export const stationFilterOptions = (operatorOptions) => [
+export const operatorUserFilterOptions = (operatorOptions) => [
   {
     type: 'select',
     name: 'operatorId',

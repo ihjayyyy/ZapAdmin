@@ -1,4 +1,3 @@
-import { Abel } from "next/font/google";
 
 export const bayColumns = (renderStation, renderStatus, renderActions)=>[
     {key: 'id', label: 'ID'},

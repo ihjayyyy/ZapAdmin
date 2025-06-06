@@ -8,6 +8,7 @@ import { RiShieldUserLine } from 'react-icons/ri';
 import { BsBattery, BsEvStation } from "react-icons/bs";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { PiPlugChargingBold } from "react-icons/pi";
+import { PiUserList } from "react-icons/pi";
 
 const Route = ({ Icon, title, collapsed, href }) => {
   const router = useRouter();
@@ -73,27 +74,37 @@ const RouteSelect = ({ collapsed }) => {
         collapsed={collapsed}
         href="/dashboard"
       />
+
+      {!isOperator && ( 
+          <Route
+          Icon={FiUser}
+          title="Users"
+          collapsed={collapsed}
+          href="/users"
+        />
+      )}
+
+      <Route
+        Icon={PiUserList}
+        title="Request Accounts"
+        collapsed={collapsed}
+        href="/request"
+      />
+
+      <Route
+        Icon={FiUsers}
+        title="Operator Users"
+        collapsed={collapsed}
+        href="/operatorUsers"
+      />
+      
       {!isOperator && (
-        <>
-          <Route
-            Icon={FiUser}
-            title="Users"
-            collapsed={collapsed}
-            href="/users"
-          />
-          <Route
-            Icon={FiUsers}
-            title="Operator Users"
-            collapsed={collapsed}
-            href="/operatorUsers"
-          />
           <Route
             Icon={RiShieldUserLine}
             title="Operators"
             collapsed={collapsed}
             href="/operators"
           />
-        </>
       )}
       <Route
         Icon={BsEvStation}

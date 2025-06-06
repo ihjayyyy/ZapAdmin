@@ -64,11 +64,15 @@ function EntityFilterModal({
               aria-label={`Filter by ${label.toLowerCase()}`}
             >
               <option value="">{`All ${label}`}</option>
-              {options.map(option => (
-                <option key={option.id || option.value} value={option.id || option.value}>
-                  {option.name || option.label}
-                </option>
-              ))}
+              {options.map((option, index) => {
+                // Create a unique key by combining multiple possible identifiers
+                const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
+                return (
+                  <option key={uniqueKey} value={option.id || option.value || option.userId}>
+                    {option.name || option.label}
+                  </option>
+                );
+              })}
             </select>
           </div>
         );
@@ -80,25 +84,27 @@ function EntityFilterModal({
               {label}
             </label>
             <div className="flex gap-4">
-              {options.map(option => (
-                <label key={option.value} className="flex items-center">
-                  <input
-                    type="radio"
-                    name={name}
-                    value={option.value}
-                    checked={filters[name] === option.value}
-                    onChange={() => handleFilterChange(name, option.value)}
-                    className="mr-2"
-                  />
-                  {option.label}
-                </label>
-              ))}
+              {options.map((option, index) => {
+                // Create a unique key for radio options
+                const uniqueKey = option.value !== undefined ? `${name}-${option.value}` : `${name}-radio-${index}`;
+                return (
+                  <label key={uniqueKey} className="flex items-center">
+                    <input
+                      type="radio"
+                      name={name}
+                      value={option.value}
+                      checked={filters[name] === option.value}
+                      onChange={() => handleFilterChange(name, option.value)}
+                      className="mr-2"
+                    />
+                    {option.label}
+                  </label>
+                );
+              })}
             </div>
           </div>
         );
-        
-      // Add more filter types as needed
-      
+              
       default:
         return null;
     }

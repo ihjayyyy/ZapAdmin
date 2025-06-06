@@ -17,6 +17,10 @@ const statusMapping = {
   available: { icon: <FiCheckCircle className="text-green-500" size={14} />, text: 'Available', textColor: 'text-green-600', bgColor: 'bg-green-100' },
   unavailable: { icon: <FiXCircle className="text-red-500" size={14} />, text: 'Unavailable', textColor: 'text-red-600', bgColor: 'bg-red-100' },
   faulted: { icon: <FiAlertCircle className="text-orange-500" size={14} />, text: 'Faulted', textColor: 'text-orange-600', bgColor: 'bg-orange-100' },
+  // Add missing status for operator requests
+  pending: { icon: <FiClock className="text-yellow-500" size={14} />, text: 'Pending', textColor: 'text-yellow-600', bgColor: 'bg-yellow-100' },
+  approved: { icon: <FiCheckCircle className="text-green-500" size={14} />, text: 'Approved', textColor: 'text-green-600', bgColor: 'bg-green-100' },
+  rejected: { icon: <FiXCircle className="text-red-500" size={14} />, text: 'Rejected', textColor: 'text-red-600', bgColor: 'bg-red-100' },
   unknown: { icon: <FiHelpCircle className="text-gray-500" size={14} />, text: 'Unknown', textColor: 'text-gray-600', bgColor: 'bg-gray-100' },
 };
 

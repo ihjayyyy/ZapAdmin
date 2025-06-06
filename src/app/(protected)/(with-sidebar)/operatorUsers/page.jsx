@@ -72,7 +72,7 @@ function OperatorUsersPage() {
         setUsers(userMap);
         setUserOptions(userData.map((user) => ({ 
           id: user.userId, // Use 'userId' as the id
-          name: user.userName || `${user.firstName} ${user.lastName}` || `User ${user.userId}` 
+          name: `${user.firstName} ${user.lastName}` || `User ${user.userId}` 
         })));
       } catch (err) {
         toast.error(err.message || 'Failed to load users');

@@ -19,39 +19,42 @@ function UsersPage() {
   const [filters, setFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleAddUser = ()=>{
-    setCurrentUser(
-      {
-        userName: '',
-        email: '',
-        firstName: '',
-        lastName: '',
-        password: '',
-        userType: 'user',
-        confirmed: false,
-      }
-    )
-    setShowFormModal(true);
-  }
+const handleAddUser = () => {
+  setCurrentUser({
+    userName: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    userType: 'user',
+    confirmed: false,
+  });
+  setShowFormModal(true);
+}
 
   const handleViewUser = (user) => {
     setCurrentUser(user);
     setShowViewModal(true);
   }
 
-  const handleFormSubmit = async (formData) => {
-    try {
-      await createUser(formData,token);
-      toast.success('User created successfully');
-      setShowFormModal(false);
-      setCurrentUser(null);
-      setRefreshTrigger(prev => prev + 1);
-    } catch (error) {
-      toast.error(error.message || 'Failed to save user');
-    } finally {
-      setLoading(false);
-    }
+const handleFormSubmit = async (formData) => {
+  try {
+    // Ensure password is always 123456
+    const userData = {
+      ...formData,
+      password: '123456'
+    };
+    
+    await createUser(userData, token);
+    toast.success('User created successfully');
+    setShowFormModal(false);
+    setCurrentUser(null);
+    setRefreshTrigger(prev => prev + 1);
+  } catch (error) {
+    toast.error(error.message || 'Failed to save user');
+  } finally {
+    setLoading(false);
   }
+}
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);

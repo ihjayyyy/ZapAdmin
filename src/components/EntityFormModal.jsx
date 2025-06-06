@@ -83,13 +83,12 @@ function EntityFormModal({
     const { type, name, label, placeholder, disabled, required, options } = field;
     // Apply view-only mode by setting all fields to disabled if onView is true
     const isDisabled = onView || disabled;
-    
     switch (type) {
         case 'select': {
             const selectOptions = dropdownOptions[name] || options || [];
             // Find the selected option to display its label in view mode
             const selectedOption = selectOptions.find(
-              option => (option.id || option.value) == currentEntity[name]
+              option => (option.id || option.userId || option.value) == currentEntity[name]
             );
             const displayValue = selectedOption ? (selectedOption.name || selectedOption.label) : '';
             
@@ -111,11 +110,15 @@ function EntityFormModal({
                     className="input"
                   >
                     <option value="">{`Select ${label}`}</option>
-                    {selectOptions.map(option => (
-                      <option key={option.id || option.value} value={option.id || option.value}>
-                        {option.name || option.label}
-                      </option>
-                    ))}
+                    {selectOptions.map((option, index) => {
+                      // Create a unique key by combining multiple possible identifiers
+                      const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
+                      return (
+                        <option key={uniqueKey} value={option.id || option.value || option.userId}>
+                          {option.name || option.label}
+                        </option>
+                      );
+                    })}
                   </select>
                 )}
                 {disabled && !onView && (

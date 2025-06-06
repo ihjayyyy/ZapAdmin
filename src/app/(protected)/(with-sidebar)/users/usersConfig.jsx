@@ -19,7 +19,6 @@ export const usersFormFields = [
     {name: 'firstName', label: 'First Name', type: 'text', required: true , gridGroup: 'basic'},
     {name: 'lastName', label: 'Last Name', type: 'text', required: true , gridGroup: 'basic'},
     {name: 'email', label: 'Email', type: 'text', required: true , gridGroup: 'basic'}, 
-    {name: 'password', label: 'Password', type: 'password', required: true , gridGroup: 'basic'},
 ]
 
 export const usersFilterOptions = () => [
