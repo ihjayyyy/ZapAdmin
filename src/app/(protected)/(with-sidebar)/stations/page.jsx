@@ -32,6 +32,8 @@ function StationPage() {
   const [filters, setFilters] = useState({});
   const [operatorOptions, setOperatorOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedStations, setSelectedStations] = useState([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
 
   // Fetch all operators to map IDs to names
@@ -213,6 +215,29 @@ function StationPage() {
     (_, item) => renderActions(_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus)
   );
 
+  // Add bulk delete handler
+  const handleBulkDelete = (selectedIds) => {
+    setSelectedStations(selectedIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Handle actual bulk deletion
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setLoading(true);
+      // Delete all selected stations
+      await Promise.all(selectedStations.map(id => deleteStation(id, token)));
+      toast.success(`${selectedStations.length} stations successfully deleted`);
+      setShowBulkDeleteModal(false);
+      setSelectedStations([]);
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete stations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const customTableProps = {
     title: "Stations",
     icon: BsEvStation,
@@ -221,7 +246,8 @@ function StationPage() {
     initialPageSize: 10,
     onFilterClick: () => setShowFilterModal(true),
     hasActiveFilters: Object.keys(filters).length > 0,
-    onAddClick: handleAddStation
+    onAddClick: handleAddStation,
+    onBulkDelete: handleBulkDelete, // Make sure this is being passed
   };
 
   return (
@@ -290,6 +316,37 @@ function StationPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DynamicModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Confirm Bulk Delete"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete {selectedStations.length} stations?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleConfirmBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete Selected
             </button>
           </div>
         </div>

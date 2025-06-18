@@ -8,7 +8,8 @@ import {
   FiChevronDown, 
   FiSearch, 
   FiFilter,
-  FiPlus
+  FiPlus,
+  FiTrash2
 } from "react-icons/fi";
 
 function DynamicTable({ 
@@ -20,6 +21,7 @@ function DynamicTable({
   onFilterClick = null,
   hasActiveFilters = false,
   onAddClick = null,
+  onBulkDelete = null, // Add this prop
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
@@ -29,11 +31,12 @@ function DynamicTable({
   const [data, setData] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [selectedItems, setSelectedItems] = useState([]);
   
   const totalPages = Math.ceil(totalItems / pageSize);
 
   // Define columns that should not be sortable
-  const nonSortableColumns = ['contact', 'location','actions'];
+  const nonSortableColumns = ['contact', 'location','actions','selection'];
 
   useEffect(() => {
     const loadData = async () => {
@@ -105,10 +108,39 @@ function DynamicTable({
     setCurrentPage(1); // Reset to first page when page size changes
   };
 
+  // Add checkbox column if bulk actions are enabled
+  const allColumns = onBulkDelete ? [
+    {
+      key: 'selection',
+      label: <input 
+        type="checkbox"
+        checked={data.length > 0 && selectedItems.length === data.length}
+        onChange={(e) => {
+          setSelectedItems(e.target.checked ? data.map(item => item.id) : []);
+        }}
+        className="rounded border-gray-300"
+      />,
+      render: (_, item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.includes(item.id)}
+          onChange={(e) => {
+            setSelectedItems(prev => 
+              e.target.checked 
+                ? [...prev, item.id]
+                : prev.filter(id => id !== item.id)
+            );
+          }}
+          className="rounded border-gray-300"
+        />
+      )
+    },
+    ...columns
+  ] : columns;
+
   return (
     <div className="col-span-12 p-4 mx-4 rounded border border-stone-300">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-
         <div className="flex items-center gap-2">
           <h3 className="flex items-center gap-1.5 font-medium">
             <Icon /> {title}
@@ -134,17 +166,30 @@ function DynamicTable({
             </button>
           )}
         </div>
-        {onAddClick && (
-          <button 
-            className="cursor-pointer bg-deepblue-500 text-white transition-colors place-content-center rounded text-sm py-1.5 px-3 flex items-center gap-1"
-            onClick={onAddClick}
-            aria-label="Add new item"
-            title="Add new item"
-          >
-            <FiPlus size={16} />
-            <span>Add</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Show bulk delete button if items are selected */}
+          {selectedItems.length > 0 && (
+            <button 
+              className="cursor-pointer bg-red-600 text-white transition-colors place-content-center rounded text-sm py-1.5 px-3 flex items-center gap-1"
+              onClick={() => onBulkDelete(selectedItems)}
+            >
+              <FiTrash2 size={16} />
+              <span>Delete Selected ({selectedItems.length})</span>
+            </button>
+          )}
+          {/* Add button */}
+          {onAddClick && (
+            <button 
+              className="cursor-pointer bg-deepblue-500 text-white transition-colors place-content-center rounded text-sm py-1.5 px-3 flex items-center gap-1"
+              onClick={onAddClick}
+              aria-label="Add new item"
+              title="Add new item"
+            >
+              <FiPlus size={16} />
+              <span>Add</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -152,7 +197,7 @@ function DynamicTable({
           <table className="w-full table-auto">
             <thead className="sticky top-0 z-10">
               <tr className="text-sm font-normal bg-deepblue-500 text-white">
-                {columns.map((column) => (
+                {allColumns.map((column) => (
                   <th 
                     key={column.key} 
                     className={`text-start px-1.5 py-3 ${isSortable(column.key) ? 'cursor-pointer hover:bg-deepblue-400' : ''}`}
@@ -180,7 +225,7 @@ function DynamicTable({
               ) : data.length > 0 ? (
                 data.map((item, index) => (
                   <tr key={index} className={index % 2 ? "bg-deepblue-50 text-sm" : "text-sm"}>
-                    {columns.map((column) => (
+                    {allColumns.map((column) => (
                       <td
                         key={column.key}
                         className={`p-1.5 ${column.key !== 'actions' ? 'max-column-width' : ''} ${column.className || ''}`}

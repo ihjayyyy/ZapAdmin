@@ -23,6 +23,8 @@ function OperatorsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentOperator, setCurrentOperator] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedOperators, setSelectedOperators] = useState([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -118,20 +120,48 @@ function OperatorsPage() {
     }
   };
 
+  // Handle bulk delete confirmation
+  const handleBulkDelete = (selectedIds) => {
+    setSelectedOperators(selectedIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Handle actual bulk deletion
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setLoading(true);
+      await Promise.all(selectedOperators.map(id => deleteOperator(id, token)));
+      toast.success(`${selectedOperators.length} operators successfully deleted`);
+      setShowBulkDeleteModal(false);
+      setSelectedOperators([]);
+      // Refresh data
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete operators');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = operatorColumns(
     renderContact,
     (_, item) => renderActions(_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation)
   );
 
+  const customTableProps = {
+    title: "Operators",
+    icon: RiShieldUserLine,
+    fetchData: fetchData,
+    columns: columns,
+    initialPageSize: 10,
+    onAddClick: handleAddOperator,
+    onBulkDelete: handleBulkDelete
+  };
+
   return (
     <>
       <DynamicTable
-        title="Operators"
-        icon={RiShieldUserLine}
-        fetchData={fetchData}
-        columns={columns}
-        initialPageSize={10}
-        onAddClick={handleAddOperator}
+        {...customTableProps}
       />
       
       {/* Create/Edit Form Modal */}
@@ -183,6 +213,37 @@ function OperatorsPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+      
+      {/* Bulk Delete Modal */}
+      <DynamicModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Confirm Bulk Delete"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete {selectedOperators.length} operators?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleConfirmBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete Selected
             </button>
           </div>
         </div>

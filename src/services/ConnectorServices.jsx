@@ -111,12 +111,14 @@ export const deleteConnector = async (connectorId, token) => {
     },
   });
 
-  const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to delete connector');
+    // Only try to parse error response
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to delete station');
   }
 
-  return data;
+  // If response is OK (200), just return true or empty object
+  return { success: true };
 };
 
 /**

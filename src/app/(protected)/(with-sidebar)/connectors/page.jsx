@@ -28,6 +28,8 @@ function ConnectorsPage() {
   const [connectorTypeOptions, setConnectorTypeOptions] = useState([]);
   const [chargingBayOptions, setChargingBayOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedConnectors, setSelectedConnectors] = useState([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   
   // Fetch connector types and charging bays for filter dropdowns
   useEffect(() => {
@@ -82,6 +84,29 @@ function ConnectorsPage() {
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       toast.error(error.message || 'Failed to delete connector');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle bulk delete confirmation
+  const handleBulkDelete = (selectedIds) => {
+    setSelectedConnectors(selectedIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Handle actual bulk deletion
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setLoading(true);
+      await Promise.all(selectedConnectors.map(id => deleteConnector(id, token)));
+      toast.success(`${selectedConnectors.length} connectors successfully deleted`);
+      setShowBulkDeleteModal(false);
+      setSelectedConnectors([]);
+      // Refresh data
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete connectors');
     } finally {
       setLoading(false);
     }
@@ -162,7 +187,7 @@ function ConnectorsPage() {
     initialPageSize: 10,
     onFilterClick: () => setShowFilterModal(true),
     hasActiveFilters: Object.keys(filters).length > 0,
-    // No onAddClick since we don't want add functionality
+    onBulkDelete: handleBulkDelete
   };
 
   return (
@@ -224,6 +249,37 @@ function ConnectorsPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+      
+      {/* Bulk Delete Modal */}
+      <DynamicModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Confirm Bulk Delete"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete {selectedConnectors.length} connectors?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleConfirmBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete Selected
             </button>
           </div>
         </div>

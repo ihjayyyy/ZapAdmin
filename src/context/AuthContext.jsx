@@ -52,46 +52,53 @@ export const AuthProvider = ({ children }) => {
     const checkExpiry = () => {
       const expiryStr = localStorage.getItem('tokenExpirationDate');
       if (!expiryStr) return;
+      
       const expiry = new Date(expiryStr);
       const now = new Date();
       const diffMs = expiry - now;
       const diffMin = diffMs / 60000;
 
-      // Alert at 30, 20, 10, 5, 1 minutes
+      // Only show alerts if not already shown for this threshold
       [30, 20, 10, 5, 1].forEach((min) => {
-        if (diffMin <= min && diffMin > min - 1) showAlert(min);
+        if (diffMin <= min && diffMin > min - 0.5 && !alerted[`alert${min}`]) {
+          showAlert(min);
+          setAlerted(prev => ({...prev, [`alert${min}`]: true}));
+        }
       });
 
-      // Alert at 30 seconds
-      if (diffMin <= 0.5 && diffMin > 0.49) showAlert(0.5);
-
-      // Show refresh option at 1 minute
+      // Show refresh option at 1 minute (only once)
       if (diffMin <= 1 && diffMin > 0.5 && !alerted['refresh']) {
         showRefreshOption(handleRefreshToken);
-        setAlerted((prev) => ({ ...prev, refresh: true }));
+        setAlerted(prev => ({...prev, refresh: true}));
       }
 
-      // Auto-logout at 30 seconds
-      if (diffMin <= 0.5 && diffMin > 0) {
+      // Schedule logout at 30 seconds remaining (but don't execute immediately)
+      if (diffMin <= 0.5 && diffMin > 0 && !alerted['logoutScheduled']) {
+        setAlerted(prev => ({...prev, logoutScheduled: true}));
+        
+        // Set timeout to logout after the remaining time
+        const remainingMs = Math.max(diffMs, 0);
         setTimeout(() => {
-          logout();
+          logout(true);
           toast.error('Session expired. You have been logged out.');
-        }, 30000);
+        }, remainingMs);
       }
 
-      // Immediate logout if already expired
-      if (diffMin <= 0) {
-        logout();
+      // Immediate logout only if actually expired
+      if (diffMin <= 0 && !alerted['expired']) {
+        setAlerted(prev => ({...prev, expired: true}));
+        logout(true);
         toast.error('Session expired. You have been logged out.');
       }
     };
 
-    // Run on mount and every 10 seconds
-    const interval = setInterval(checkExpiry, 10000);
+    const interval = setInterval(checkExpiry, 10000); // Check every 10 seconds
+    
+    // Run once on mount
     checkExpiry();
-
+    
     return () => clearInterval(interval);
-  }, [alerted]);
+  }, [alerted, router]);
 
   // Refresh token handler
   const handleRefreshToken = async () => {
@@ -108,7 +115,7 @@ export const AuthProvider = ({ children }) => {
       // Optionally update user state if needed
     } catch (err) {
       toast.error('Failed to refresh token. Please login again.');
-      logout();
+      logout(true); // Pass true to indicate expired session
     }
   };
 
@@ -209,14 +216,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
+  const logout = (expired = false) => {
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('tokenExpirationDate');
-    router.replace('/login'); // Redirect to login page
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('operatorId');
+    setUser(null);
+    setIsAuthenticated(false);
+    
+    // Redirect to session-expired page if token was expired
+    if (expired) {
+      router.push('/session-expired');
+    } else {
+      router.push('/login');
+    }
   };
 
   return (
