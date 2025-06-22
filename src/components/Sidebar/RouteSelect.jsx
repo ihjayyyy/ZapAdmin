@@ -9,6 +9,7 @@ import { BsBattery, BsEvStation } from "react-icons/bs";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { PiPlugChargingBold } from "react-icons/pi";
 import { PiUserList } from "react-icons/pi";
+import { IoPricetagsOutline } from "react-icons/io5";
 
 const Route = ({ Icon, title, collapsed, href }) => {
   const router = useRouter();
@@ -123,6 +124,12 @@ const RouteSelect = ({ collapsed }) => {
         title="Connectors"
         collapsed={collapsed}
         href="/connectors"
+      />
+      <Route
+        Icon={IoPricetagsOutline}
+        title="Rates"
+        collapsed={collapsed}
+        href="/rates"
       />
       <Route
         Icon={BsBattery}
