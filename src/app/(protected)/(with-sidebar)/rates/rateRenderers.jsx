@@ -10,9 +10,10 @@ export const renderStation = (stationId, stations) => {
 
 // Custom renderer for amount and unit
 export const renderAmount = (amount, item) => {
-  const formatter = new Intl.NumberFormat('en-US', {
+  // Format with Philippine Peso (₱) symbol
+  const formatter = new Intl.NumberFormat('en-PH', {
     style: 'currency',
-    currency: 'USD', // Default currency
+    currency: 'PHP', // Philippine Peso
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });

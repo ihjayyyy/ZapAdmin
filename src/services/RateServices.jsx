@@ -202,7 +202,7 @@ export const getPagedRates = async (pagingData, token) => {
  * @returns {Promise<Object>} - Response data
  */
 export const toggleRateActive = async (rateId, token) => {
-  const response = await fetch(`${apiUrl}Rate/ToggleActivate/${rateId}`, {
+  const response = await fetch(`${apiUrl}Rate/ToggleActive/${rateId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`

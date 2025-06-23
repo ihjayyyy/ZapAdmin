@@ -23,11 +23,7 @@ export const validateRateForm = (formData, setError) => {
     setError('Amount must be a valid number greater than or equal to 0');
     return false;
   }
-  
-  if (!formData.unit || formData.unit.trim() === '') {
-    setError('Unit is required');
-    return false;
-  }
+
   
   return true;
 };

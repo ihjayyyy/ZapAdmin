@@ -76,18 +76,6 @@ export const rateFormFields = [
     required: true,
     gridGroup: 'pricing'
   },
-  { 
-    name: 'unit', 
-    label: 'Unit', 
-    type: 'select',
-    options: [
-      { value: 'kWh', label: 'kWh' },
-      { value: 'minute', label: 'Per Minute' },
-      { value: 'hour', label: 'Per Hour' },
-      { value: 'session', label: 'Per Session' }
-    ],
-    required: true,
-  },
   {
     name: 'isActive',
     label: 'Active',
@@ -111,17 +99,6 @@ export const rateFilterOptions = (stationOptions) => [
     options: [
       { value: 0, label: 'Flat Rate' },
       { value: 1, label: 'Per kWh' }
-    ]
-  },
-  {
-    type: 'select',
-    name: 'unit',
-    label: 'Unit',
-    options: [
-      { value: 'kWh', label: 'kWh' },
-      { value: 'minute', label: 'Per Minute' },
-      { value: 'hour', label: 'Per Hour' },
-      { value: 'session', label: 'Per Session' }
     ]
   },
   {
