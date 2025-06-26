@@ -217,3 +217,28 @@ export const getStationByOperatorId = async (operatorId, token) => {
 
   return data;
 };
+
+/**
+ * Get paginated stations by operator ID
+ * @param {string} operatorId - ID of the operator
+ * @param {number} page - Page number (1-based)
+ * @param {number} pageSize - Number of items per page
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} - Paginated station data
+ */
+export const getPagedStationsByOperator = async (operatorId, page = 1, pageSize = 5, token) => {
+  const pagingData = {
+    page: page,
+    pageSize: pageSize,
+    sortField: 'id',
+    sortAscending: true,
+    filter: [`operatorId=${parseInt(operatorId, 10)}`]
+  };
+
+  const response = await getPagedStations(pagingData, token);
+  
+  return {
+    data: response.result || [],
+    totalItems: response.Pagination?.length || 0
+  };
+};

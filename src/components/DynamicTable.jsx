@@ -36,7 +36,7 @@ function DynamicTable({
   const totalPages = Math.ceil(totalItems / pageSize);
 
   // Define columns that should not be sortable
-  const nonSortableColumns = ['contact', 'location','actions','selection'];
+  const nonSortableColumns = ['contact', 'location','actions','selection', 'expand', 'expandedContent'];
 
   useEffect(() => {
     const loadData = async () => {
@@ -216,33 +216,51 @@ function DynamicTable({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length} className="p-4 text-center">
+                  <td colSpan={allColumns.filter(col => col.key !== 'expandedContent').length} className="p-4 text-center">
                     <div className="flex justify-center items-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-deepblue-500"></div>
                     </div>
                   </td>
                 </tr>
               ) : data.length > 0 ? (
-                data.map((item, index) => (
-                  <tr key={index} className={index % 2 ? "bg-deepblue-50 text-sm" : "text-sm"}>
-                    {allColumns.map((column) => (
-                      <td
-                        key={column.key}
-                        className={`p-1.5 ${column.key !== 'actions' ? 'max-column-width' : ''} ${column.className || ''}`}
-                        title={item[column.key] && typeof item[column.key] === 'string' ? item[column.key] : undefined}
-                      >
-                        {column.render ? (
-                          column.render(item[column.key], item)
-                        ) : (
-                          item[column.key]
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))
+                data.map((item, index) => {
+                  // Find the expandedContent column
+                  const expandedColumn = allColumns.find(col => col.key === 'expandedContent');
+                  const expandedContent = expandedColumn?.render ? expandedColumn.render(null, item) : null;
+                  const hasExpandedContent = expandedContent !== null && expandedContent !== undefined;
+                  
+                  return (
+                    <React.Fragment key={index}>
+                      {/* Main row */}
+                      <tr className={index % 2 ? "bg-deepblue-50 text-sm" : "text-sm"}>
+                        {allColumns.filter(col => col.key !== 'expandedContent').map((column) => (
+                          <td
+                            key={column.key}
+                            className={`p-1.5 ${column.key !== 'actions' ? 'max-column-width' : ''} ${column.className || ''}`}
+                            title={item[column.key] && typeof item[column.key] === 'string' ? item[column.key] : undefined}
+                          >
+                            {column.render ? (
+                              column.render(item[column.key], item)
+                            ) : (
+                              item[column.key]
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                      {/* Expanded content row */}
+                      {hasExpandedContent && (
+                        <tr className={index % 2 ? "bg-deepblue-50" : ""}>
+                          <td colSpan={allColumns.filter(col => col.key !== 'expandedContent').length} className="p-0">
+                            {expandedContent}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={columns.length} className="p-4 text-center text-stone-500">
+                  <td colSpan={allColumns.filter(col => col.key !== 'expandedContent').length} className="p-4 text-center text-stone-500">
                     No data found
                   </td>
                 </tr>

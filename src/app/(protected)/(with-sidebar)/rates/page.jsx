@@ -8,24 +8,34 @@ import DynamicModal from '@/components/DynamicModal';
 import EntityFilterModal from '@/components/EntityFilterModal';
 import EntityFormModal from '@/components/EntityFormModal';
 import { useAuth } from '@/context/AuthContext';
-import { getAllStations } from '@/services/StationServices';
+import { getAllChargingBays } from '@/services/ChargingBayServices';
 import { 
   createRate, 
   updateRate, 
   deleteRate, 
-  getPagedRates, 
-  toggleRateActive 
+  getPagedRates
 } from '@/services/RateServices';
+import { 
+  getRateBreakdownsByRate,
+  getPagedRateBreakdownsByRate,
+  createRateBreakdown,
+  updateRateBreakdown,
+  deleteRateBreakdown
+} from '@/services/RateBreakdownServices';
 import { rateColumns } from './rateConfig';
 import { rateFilterOptions } from './rateConfig';
 import { rateFormFields } from './rateConfig';
 import { validateRateForm } from './rateValidation';
-import { renderStation, renderAmount, renderStatus, renderActions } from './rateRenderers';
+import { renderChargingBay, renderStatus, renderActions } from './rateRenderers';
+import { rateBreakdownFormFields, rateTypeOptions } from '../rateBreakdowns/rateBreakdownConfig';
+import { validateRateBreakdownForm } from '../rateBreakdowns/rateBreakdownValidation';
+import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
+import { rateBreakdownConfig } from '@/components/ExpandableTableConfigs';
 
 function RatePage() {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
-  const [stations, setStations] = useState({});
+  const [chargingBays, setChargingBays] = useState({});
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -33,45 +43,72 @@ function RatePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentRate, setCurrentRate] = useState(null);
   const [filters, setFilters] = useState({});
-  const [stationOptions, setStationOptions] = useState([]);
+  const [chargingBayOptions, setChargingBayOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedRates, setSelectedRates] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  
+  // Rate breakdown CRUD state
+  const [showBreakdownFormModal, setShowBreakdownFormModal] = useState(false);
+  const [showBreakdownViewModal, setShowBreakdownViewModal] = useState(false);
+  const [showBreakdownDeleteModal, setShowBreakdownDeleteModal] = useState(false);
+  const [currentBreakdown, setCurrentBreakdown] = useState(null);
+  const [selectedRate, setSelectedRate] = useState(null);
 
-  // Fetch all stations to map IDs to names
+  // Expandable table functionality
+  const {
+    expandedRows,
+    relatedData: rateBreakdowns,
+    loadingItems: loadingBreakdowns,
+    pagination,
+    currentPages,
+    handleToggleExpand: baseHandleToggleExpand,
+    handlePageChange,
+    refreshRelatedData
+  } = useExpandableTable((rateId, page, pageSize) => getPagedRateBreakdownsByRate(rateId, page, pageSize, token));
+
+  // Wrapper to handle error messages
+  const handleToggleExpand = async (rate) => {
+    try {
+      await baseHandleToggleExpand(rate);
+    } catch (error) {
+      toast.error(`Failed to load breakdowns for ${rate.name}: ${error.message}`);
+    }
+  };
+
+  // Fetch all charging bays to map IDs to names
   useEffect(() => {
-    const loadStations = async () => {
+    const loadChargingBays = async () => {
       try {
-        const stationData = await getAllStations(token);
-        // Create a mapping of station ID to station name
-        const stationMap = {};
+        const chargingBayData = await getAllChargingBays(token);
+        console.log('Charging Bay Data:', chargingBayData);
+        // Create a mapping of charging bay ID to charging bay name
+        const chargingBayMap = {};
         const options = [];
-        stationData.forEach(station => {
-          stationMap[station.id] = station.name;
-          // Store stationId as number, not string
-          options.push({ value: station.id, label: station.name });
+        chargingBayData.forEach(bay => {
+          chargingBayMap[bay.id] = bay.code;
+          // Store chargeBayId as number, not string
+          options.push({ value: bay.id, label: bay.code });
         });
-        setStations(stationMap);
-        setStationOptions(options);
+        setChargingBays(chargingBayMap);
+        setChargingBayOptions(options);
       } catch (error) {
-        toast.error(error.message || 'Failed to load stations');
+        toast.error(error.message || 'Failed to load charging bays');
       } finally {
         setLoading(false);
       }
     };
 
-    loadStations();
+    loadChargingBays();
   }, [token]);
 
   // Handle adding a new rate
   const handleAddRate = () => {
+    console.log(chargingBayOptions)
     setCurrentRate({
-      stationId: stationOptions.length > 0 ? stationOptions[0].value : null,
+      chargingBayId: chargingBayOptions.length > 0 ? chargingBayOptions[0].value : null,
       name: '',
-      rateType: 0, // Default to Standard
-      amount: 0,
-      unit: 'kWh', // Default unit
-      isActive: true
+      status: true
     });
     setShowFormModal(true);
   };
@@ -98,8 +135,9 @@ function RatePage() {
   const handleToggleStatus = async (rate) => {
     try {
       setLoading(true);
-      await toggleRateActive(rate.id, token);
-      const statusText = rate.isActive ? 'deactivated' : 'activated';
+      const updatedRate = { ...rate, status: !rate.status };
+      await updateRate(rate.id, updatedRate, token);
+      const statusText = rate.status ? 'deactivated' : 'activated';
       toast.success(`Rate ${statusText} successfully`);
       // Trigger refresh by updating the refresh trigger
       setRefreshTrigger(prev => prev + 1);
@@ -129,24 +167,13 @@ function RatePage() {
   // Handle form submission (create or update)
   const handleFormSubmit = async (formData) => {
     try {
-      console.log("Before fixing:", formData); // Debug log
-      
-      // Create a new object with fixed rateType
-      const fixedFormData = {
-        ...formData,
-        // Explicitly handle 0 vs null/undefined
-        rateType: formData.rateType === 0 ? 0 : (formData.rateType || 0)
-      };
-      
-      console.log("After fixing:", fixedFormData); // Debug log
-      
       setLoading(true);
       
-      if (fixedFormData.id) {
-        await updateRate(fixedFormData.id, fixedFormData, token);
+      if (formData.id) {
+        await updateRate(formData.id, formData, token);
         toast.success('Rate updated successfully');
       } else {
-        await createRate(fixedFormData, token);
+        await createRate(formData, token);
         toast.success('Rate created successfully');
       }
       
@@ -177,21 +204,15 @@ function RatePage() {
     const filterArray = [...(baseFilters || [])];
 
     // Add filter from additionalFilters if provided
-    if (additionalFilters.stationId) {
-      filterArray.push(`stationId=${parseInt(additionalFilters.stationId, 10)}`);
+    if (additionalFilters.chargingBayId) {
+      filterArray.push(`chargingBayId=${parseInt(additionalFilters.chargingBayId, 10)}`);
     }
-    if (additionalFilters.rateType !== undefined) {
-      filterArray.push(`rateType=${additionalFilters.rateType}`);
-    }
-    if (additionalFilters.unit) {
-      filterArray.push(`unit=${additionalFilters.unit}`);
-    }
-    if (additionalFilters.isActive !== undefined) {
-      filterArray.push(`isActive=${additionalFilters.isActive}`);
+    if (additionalFilters.status !== undefined) {
+      filterArray.push(`status=${additionalFilters.status}`);
     }
 
     if (isOperator && operatorId) {
-      // For operators, we need to filter rates by their stations
+      // For operators, we need to filter rates by their charging bays
       if (!filterArray.some(f => f.startsWith("operatorId="))) {
         filterArray.push(`operatorId=${operatorId}`);
       }
@@ -226,10 +247,25 @@ function RatePage() {
   }, [token, filters, buildFilterString, refreshTrigger]);
 
   const columns = rateColumns(
-    (stationId) => renderStation(stationId, stations),
-    renderAmount,
+    (chargingBayId) => renderChargingBay(chargingBayId, chargingBays),
     renderStatus,
-    (_, item) => renderActions(_, item, handleViewRate, handleEditRate, handleDeleteConfirmation, handleToggleStatus)
+    (_, item) => renderActions(_, item, handleViewRate, handleEditRate, handleDeleteConfirmation, handleToggleStatus, expandedRows, handleToggleExpand),
+    (_, item) => createExpandedContent(rateBreakdownConfig)(
+      _, 
+      item, 
+      expandedRows, 
+      rateBreakdowns, 
+      loadingBreakdowns,
+      {
+        onAdd: handleAddBreakdown,
+        onView: handleViewBreakdown,
+        onEdit: handleEditBreakdown,
+        onDelete: handleDeleteBreakdown
+      },
+      pagination,
+      currentPages,
+      handlePageChange
+    )
   );
 
   // Add bulk delete handler
@@ -255,6 +291,78 @@ function RatePage() {
     }
   };
 
+  // Rate Breakdown CRUD Handlers
+  const handleAddBreakdown = (rate) => {
+    setSelectedRate(rate);
+    setCurrentBreakdown({
+      rateId: rate.id,
+      name: '',
+      amount: 0,
+      rateType: 0
+    });
+    setShowBreakdownFormModal(true);
+  };
+
+  const handleViewBreakdown = (breakdown) => {
+    setCurrentBreakdown(breakdown);
+    setShowBreakdownViewModal(true);
+  };
+
+  const handleEditBreakdown = (breakdown) => {
+    setCurrentBreakdown(breakdown);
+    setShowBreakdownFormModal(true);
+  };
+
+  const handleDeleteBreakdown = (breakdown) => {
+    setCurrentBreakdown(breakdown);
+    setShowBreakdownDeleteModal(true);
+  };
+
+  const handleBreakdownFormSubmit = async (formData) => {
+    try {
+      setLoading(true);
+      
+      if (formData.id) {
+        // Update existing breakdown
+        await updateRateBreakdown(formData.id, formData, token);
+        toast.success('Rate breakdown updated successfully');
+      } else {
+        // Create new breakdown
+        await createRateBreakdown(formData, token);
+        toast.success('Rate breakdown created successfully');
+      }
+      
+      setShowBreakdownFormModal(false);
+      
+      // Refresh the rate breakdowns for the current rate
+      if (selectedRate || currentBreakdown?.rateId) {
+        const rateId = selectedRate?.id || currentBreakdown.rateId;
+        await refreshRelatedData(rateId);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to save rate breakdown');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBreakdownConfirm = async () => {
+    try {
+      setLoading(true);
+      await deleteRateBreakdown(currentBreakdown.id, token);
+      toast.success('Rate breakdown deleted successfully');
+      setShowBreakdownDeleteModal(false);
+      
+      // Refresh the rate breakdowns for the current rate
+      const rateId = currentBreakdown.rateId;
+      await refreshRelatedData(rateId);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete rate breakdown');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const customTableProps = {
     title: "Rates",
     icon: BsCurrencyDollar,
@@ -265,6 +373,29 @@ function RatePage() {
     hasActiveFilters: Object.keys(filters).length > 0,
     onAddClick: handleAddRate,
     onBulkDelete: handleBulkDelete,
+    expandedRow: Array.from(expandedRows),
+    onRowExpand: handleToggleExpand,
+    renderExpandedRow: (rate) => {
+      const breakdowns = rateBreakdowns[rate.id] || [];
+      
+      return (
+        <div className="p-4 bg-gray-50 border-t">
+          <h4 className="font-semibold mb-2">Rate Breakdowns</h4>
+          
+          {breakdowns.length === 0 ? (
+            <p className="text-gray-500 text-sm">No breakdowns found for this rate.</p>
+          ) : (
+            <ul className="list-disc list-inside space-y-1">
+              {breakdowns.map(breakdown => (
+                <li key={breakdown.id} className="text-sm">
+                  {breakdown.description}: <strong>{breakdown.amount}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }
   };
 
   return (
@@ -275,7 +406,7 @@ function RatePage() {
       <EntityFilterModal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
-        filterOptions={rateFilterOptions(stationOptions)}
+        filterOptions={rateFilterOptions(chargingBayOptions)}
         currentFilters={filters}
         onApplyFilters={handleApplyFilters}
         onClearFilters={handleClearFilters}
@@ -287,7 +418,7 @@ function RatePage() {
         <EntityFormModal
           entity={currentRate}
           formFields={rateFormFields}
-          dropdownOptions={{ stationId: stationOptions }}
+          dropdownOptions={{ chargingBayId: chargingBayOptions }}
           onSubmit={handleFormSubmit}
           onClose={() => setShowFormModal(false)}
           validateForm={validateRateForm}
@@ -300,7 +431,7 @@ function RatePage() {
         <EntityFormModal
           entity={currentRate}
           formFields={rateFormFields}
-          dropdownOptions={{ stationId: stationOptions }}
+          dropdownOptions={{ chargingBayId: chargingBayOptions }}
           onClose={() => setShowViewModal(false)}
           entityName="Rate"
           onView={true}
@@ -364,6 +495,68 @@ function RatePage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete Selected
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+
+      {/* Rate Breakdown Create/Edit Form Modal */}
+      {showBreakdownFormModal && (
+        <EntityFormModal
+          entity={currentBreakdown}
+          formFields={rateBreakdownFormFields}
+          dropdownOptions={{ 
+            rateType: rateTypeOptions,
+            rateId: [{ value: selectedRate?.id || currentBreakdown?.rateId, label: selectedRate?.name || 'Selected Rate' }]
+          }}
+          onSubmit={handleBreakdownFormSubmit}
+          onClose={() => setShowBreakdownFormModal(false)}
+          validateForm={validateRateBreakdownForm}
+          entityName="Rate Breakdown"
+        />
+      )}
+      
+      {/* Rate Breakdown View Modal */}
+      {showBreakdownViewModal && (
+        <EntityFormModal
+          entity={currentBreakdown}
+          formFields={rateBreakdownFormFields}
+          dropdownOptions={{ 
+            rateType: rateTypeOptions,
+            rateId: [{ value: currentBreakdown?.rateId, label: 'Rate ID: ' + currentBreakdown?.rateId }]
+          }}
+          onClose={() => setShowBreakdownViewModal(false)}
+          entityName="Rate Breakdown"
+          onView={true}
+        />
+      )}
+      
+      {/* Rate Breakdown Delete Confirmation Modal */}
+      <DynamicModal
+        isOpen={showBreakdownDeleteModal}
+        onClose={() => setShowBreakdownDeleteModal(false)}
+        title="Confirm Delete"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete the rate breakdown <strong>{currentBreakdown?.name}</strong>?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBreakdownDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleDeleteBreakdownConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete
             </button>
           </div>
         </div>

@@ -4,7 +4,7 @@
  */
 
 // Table columns definition
-export const operatorColumns = (renderContact, renderActions) => [
+export const operatorColumns = (renderContact, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Name' },
   { key: 'address', label: 'Address' },
@@ -18,6 +18,12 @@ export const operatorColumns = (renderContact, renderActions) => [
     key: 'actions',
     label: 'Actions',
     render: renderActions
+  },
+  {
+    key: 'expandedContent',
+    label: '',
+    render: renderExpandedContent,
+    className: 'hidden' // This will be shown/hidden dynamically
   }
 ];
 

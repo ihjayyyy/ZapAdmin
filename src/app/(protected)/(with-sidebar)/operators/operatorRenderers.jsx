@@ -1,6 +1,6 @@
 import React from 'react';
 import ActionButtons from '@/components/ActionButtons';
-import { FiMail, FiPhone, FiEye, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiMail, FiPhone, FiEye, FiEdit, FiTrash2, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 
 // Custom renderer for contact information
 export const renderContact = (_, item) => {
@@ -24,15 +24,25 @@ export const renderActions = (
   item, 
   handleViewOperator, 
   handleEditOperator, 
-  handleDeleteConfirmation
+  handleDeleteConfirmation,
+  expandedRows,
+  handleToggleExpand
 ) => {
+  const isExpanded = expandedRows && expandedRows.has(item.id);
+  
   return (
     <ActionButtons
       actions={[
+        expandedRows && handleToggleExpand && {
+          onClick: () => handleToggleExpand(item),
+          icon: isExpanded ? FiChevronDown : FiChevronRight,
+          title: isExpanded ? 'Collapse' : 'Expand to see stations',
+          className: 'hover:bg-gray-100 text-gray-600'
+        },
         { onClick: () => handleViewOperator(item), icon: FiEye, title: 'View' },
         { onClick: () => handleEditOperator(item), icon: FiEdit, title: 'Edit', className: 'hover:bg-blue-100 text-blue-600' },
         { onClick: () => handleDeleteConfirmation(item), icon: FiTrash2, title: 'Delete', className: 'hover:bg-red-100 text-red-600' },
-      ]}
+      ].filter(Boolean)}
     />
   );
 };

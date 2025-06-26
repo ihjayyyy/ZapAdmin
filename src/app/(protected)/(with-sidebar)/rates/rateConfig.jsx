@@ -4,33 +4,16 @@
  */
 
 // Table columns definition
-export const rateColumns = (renderStation, renderAmount, renderStatus, renderActions) => [
+export const rateColumns = (renderChargingBay, renderStatus, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
   { 
-    key: 'stationId', 
-    label: 'Station',
-    render: renderStation
+    key: 'chargingBayId', 
+    label: 'Charging Bay',
+    render: renderChargingBay
   },
   { key: 'name', label: 'Name', className: 'max-column-width' },
-  { 
-    key: 'rateType', 
-    label: 'Rate Type',
-    render: (rateType) => {
-      // Map rate type enum values to readable text
-      const rateTypes = {
-        0: 'Flat Rate',
-        1: 'Per kWh'
-      };
-      return rateTypes[rateType] || `Unknown (${rateType})`;
-    }
-  },
   {
-    key: 'amount',
-    label: 'Amount',
-    render: renderAmount
-  },
-  {
-    key: 'isActive',
+    key: 'status',
     label: 'Status',
     render: renderStatus
   },
@@ -38,14 +21,20 @@ export const rateColumns = (renderStation, renderAmount, renderStatus, renderAct
     key: 'actions',
     label: 'Actions',
     render: renderActions
+  },
+  {
+    key: 'expandedContent',
+    label: '',
+    render: renderExpandedContent,
+    className: 'hidden' // This will be shown/hidden dynamically
   }
 ];
 
 // Form fields for rate creation/editing
 export const rateFormFields = [
   { 
-    name: 'stationId', 
-    label: 'Station', 
+    name: 'chargingBayId', 
+    label: 'Charging Bay', 
     type: 'select',
     required: true,
     gridGroup: 'basic'
@@ -58,52 +47,25 @@ export const rateFormFields = [
     gridGroup: 'basic'
   },
   {
-    name: 'rateType',
-    label: 'Rate Type',
-    type: 'select',
-    options: [
-      { value: 0, label: 'Flat Rate' },
-      { value: 1, label: 'Per kWh' }
-    ],
-    required: true,
-    gridGroup: 'pricing'
-  },
-  { 
-    name: 'amount', 
-    label: 'Amount', 
-    type: 'number',
-    step: '0.01',
-    required: true,
-    gridGroup: 'pricing'
-  },
-  {
-    name: 'isActive',
+    name: 'status',
     label: 'Active',
     type: 'checkbox',
-    defaultValue: true
+    defaultValue: true,
+    gridGroup: 'basic'
   }
 ];
 
 // Filter options configuration for the modal
-export const rateFilterOptions = (stationOptions) => [
+export const rateFilterOptions = (chargingBayOptions) => [
   {
     type: 'select',
-    name: 'stationId',
-    label: 'Station',
-    options: stationOptions
-  },
-  {
-    type: 'select',
-    name: 'rateType',
-    label: 'Rate Type',
-    options: [
-      { value: 0, label: 'Flat Rate' },
-      { value: 1, label: 'Per kWh' }
-    ]
+    name: 'chargingBayId',
+    label: 'Charging Bay',
+    options: chargingBayOptions
   },
   {
     type: 'radio',
-    name: 'isActive',
+    name: 'status',
     label: 'Status',
     options: [
       { value: 'true', label: 'Active' },

@@ -7,6 +7,12 @@ import {
   updateOperator, 
   deleteOperator,  
 } from '../../../../services/OperatorServices';
+import { 
+  getPagedStationsByOperator,
+  createStation,
+  updateStation,
+  deleteStation
+} from '../../../../services/StationServices';
 import DynamicTable from "@/components/DynamicTable";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
@@ -14,6 +20,10 @@ import { RiShieldUserLine } from 'react-icons/ri';
 import { operatorColumns, operatorFormFields } from './operatorConfig';
 import { renderContact, renderActions } from './operatorRenderers';
 import { validateOperatorForm } from './operatorValidation';
+import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
+import { operatorStationConfig } from '@/components/ExpandableTableConfigs';
+import { stationFormFields } from '../stations/stationConfig';
+import { validateStationForm } from '../stations/stationValidation';
 
 function OperatorsPage() {
   const token = localStorage.getItem('token');
@@ -25,6 +35,34 @@ function OperatorsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedOperators, setSelectedOperators] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+  // Station modal states
+  const [selectedOperatorForStation, setSelectedOperatorForStation] = useState(null);
+  const [currentStation, setCurrentStation] = useState(null);
+  const [showStationFormModal, setShowStationFormModal] = useState(false);
+  const [showStationViewModal, setShowStationViewModal] = useState(false);
+  const [showStationDeleteModal, setShowStationDeleteModal] = useState(false);
+
+  // Expandable table functionality for stations
+  const {
+    expandedRows,
+    relatedData: operatorStations,
+    loadingItems: loadingStations,
+    pagination,
+    currentPages,
+    handleToggleExpand: baseHandleToggleExpand,
+    handlePageChange,
+    refreshRelatedData
+  } = useExpandableTable((operatorId, page, pageSize) => getPagedStationsByOperator(operatorId, page, pageSize, token));
+
+  // Wrapper to handle error messages
+  const handleToggleExpand = async (operator) => {
+    try {
+      await baseHandleToggleExpand(operator);
+    } catch (error) {
+      toast.error(`Failed to load stations for ${operator.name}: ${error.message}`);
+    }
+  };
   
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -143,9 +181,100 @@ function OperatorsPage() {
     }
   };
 
+  // Station CRUD Handlers
+  const handleAddStation = (operator) => {
+    setSelectedOperatorForStation(operator);
+    setCurrentStation({
+      operatorId: operator.id,
+      name: '',
+      address: '',
+      latitude: 0,
+      longitude: 0,
+      additionalInfo: ''
+    });
+    setShowStationFormModal(true);
+  };
+
+  const handleViewStation = (station) => {
+    setCurrentStation(station);
+    setShowStationViewModal(true);
+  };
+
+  const handleEditStation = (station) => {
+    setCurrentStation(station);
+    setShowStationFormModal(true);
+  };
+
+  const handleDeleteStation = (station) => {
+    setCurrentStation(station);
+    setShowStationDeleteModal(true);
+  };
+
+  const handleStationFormSubmit = async (formData) => {
+    try {
+      setLoading(true);
+      
+      if (formData.id) {
+        // Update existing station
+        await updateStation(formData.id, formData, token);
+        toast.success('Station updated successfully');
+      } else {
+        // Create new station
+        await createStation(formData, token);
+        toast.success('Station created successfully');
+      }
+      
+      setShowStationFormModal(false);
+      
+      // Refresh the stations for the current operator
+      if (selectedOperatorForStation || currentStation?.operatorId) {
+        const operatorId = selectedOperatorForStation?.id || currentStation.operatorId;
+        await refreshRelatedData(operatorId);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to save station');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteStationConfirm = async () => {
+    try {
+      setLoading(true);
+      await deleteStation(currentStation.id, token);
+      toast.success('Station deleted successfully');
+      setShowStationDeleteModal(false);
+      
+      // Refresh the stations for the current operator
+      if (currentStation?.operatorId) {
+        await refreshRelatedData(currentStation.operatorId);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete station');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = operatorColumns(
     renderContact,
-    (_, item) => renderActions(_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation)
+    (_, item) => renderActions(_, item, handleViewOperator, handleEditOperator, handleDeleteConfirmation, expandedRows, handleToggleExpand),
+    (_, item) => createExpandedContent(operatorStationConfig)(
+      _, 
+      item, 
+      expandedRows, 
+      operatorStations, 
+      loadingStations,
+      {
+        onAdd: handleAddStation,
+        onView: handleViewStation,
+        onEdit: handleEditStation,
+        onDelete: handleDeleteStation
+      },
+      pagination,
+      currentPages,
+      handlePageChange
+    )
   );
 
   const customTableProps = {
@@ -244,6 +373,60 @@ function OperatorsPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete Selected
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+
+      {/* Station Create/Edit Form Modal */}
+      {showStationFormModal && (
+        <EntityFormModal
+          entity={currentStation}
+          formFields={stationFormFields}
+          onSubmit={handleStationFormSubmit}
+          onClose={() => setShowStationFormModal(false)}
+          validateForm={validateStationForm}
+          entityName="Station"
+        />
+      )}
+      
+      {/* Station View Details Modal */}
+      {showStationViewModal && (
+        <EntityFormModal
+          entity={currentStation}
+          formFields={stationFormFields}
+          onClose={() => setShowStationViewModal(false)}
+          entityName="Station"
+          onView={true}
+        />
+      )}
+      
+      {/* Station Delete Confirmation Modal */}
+      <DynamicModal
+        isOpen={showStationDeleteModal}
+        onClose={() => setShowStationDeleteModal(false)}
+        title="Confirm Delete Station"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete the station <strong>{currentStation?.name}</strong>?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowStationDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleDeleteStationConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete
             </button>
           </div>
         </div>

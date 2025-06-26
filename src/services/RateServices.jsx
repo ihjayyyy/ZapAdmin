@@ -4,11 +4,8 @@ const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
  * Create a new rate
  * @param {Object} rateData - The rate data
  * @param {string} rateData.name - Name of the rate
- * @param {number} rateData.stationId - ID of the station
- * @param {boolean} rateData.isActive - Whether the rate is active
- * @param {number} rateData.rateType - Type of rate
- * @param {number} rateData.amount - Price amount
- * @param {string} rateData.unit - Unit of measurement
+ * @param {number} rateData.chargingBayId - ID of the charging bay
+ * @param {boolean} rateData.status - Whether the rate is active
  * @param {string} token - Authentication token
  * @returns {Promise<Object>} - The created rate data
  */
@@ -16,12 +13,8 @@ export const createRate = async (rateData, token) => {
   // Convert to match the API expected format
   const apiData = {
     name: rateData.name,
-    stationId: Number(rateData.stationId), // Ensure stationId is an integer
-    isActive: rateData.isActive !== false, // Default to true if not specified
-    // Explicitly handle 0 vs null/undefined
-    rateType: rateData.rateType === 0 ? 0 : (Number(rateData.rateType) || 0),
-    amount: parseFloat(rateData.amount), // Parse amount as float/decimal
-    unit: rateData.unit
+    chargingBayId: Number(rateData.chargingBayId),
+    status: rateData.status !== false
   };
 
   const response = await fetch(`${apiUrl}Rate`, {
@@ -95,12 +88,8 @@ export const updateRate = async (rateId, rateData, token) => {
   // Convert to match the API expected format
   const apiData = {
     name: rateData.name,
-    stationId: Number(rateData.stationId), // Ensure stationId is an integer
-    isActive: rateData.isActive !== false, // Default to true if not specified
-    // Explicitly handle 0 vs null/undefined
-    rateType: rateData.rateType === 0 ? 0 : (Number(rateData.rateType) || 0),
-    amount: parseFloat(rateData.amount), // Parse amount as float/decimal
-    unit: rateData.unit
+    chargingBayId: Number(rateData.chargingBayId),
+    status: rateData.status !== false
   };
 
   const response = await fetch(`${apiUrl}Rate/${rateId}`, {
@@ -145,13 +134,13 @@ export const deleteRate = async (rateId, token) => {
 };
 
 /**
- * Get rates by station ID
- * @param {string} stationId - ID of the station
+ * Get rates by charging bay ID
+ * @param {string} chargingBayId - ID of the charging bay
  * @param {string} token - Authentication token
- * @returns {Promise<Array>} - List of rates for the station
+ * @returns {Promise<Array>} - List of rates for the charging bay
  */
-export const getRatesByStation = async (stationId, token) => {
-  const response = await fetch(`${apiUrl}Rate/ByStation/${stationId}`, {
+export const getRatesByChargingBay = async (chargingBayId, token) => {
+  const response = await fetch(`${apiUrl}Rate/ChargingBay/${chargingBayId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -160,7 +149,7 @@ export const getRatesByStation = async (stationId, token) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch station rates');
+    throw new Error(data.message || 'Failed to fetch charging bay rates');
   }
 
   return data;
@@ -190,49 +179,6 @@ export const getPagedRates = async (pagingData, token) => {
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || 'Failed to fetch paginated rates');
-  }
-
-  return data;
-};
-
-/**
- * Toggle rate active status
- * @param {number} rateId - ID of the rate to toggle
- * @param {string} token - Authentication token
- * @returns {Promise<Object>} - Response data
- */
-export const toggleRateActive = async (rateId, token) => {
-  const response = await fetch(`${apiUrl}Rate/ToggleActive/${rateId}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to toggle rate activation');
-  }
-
-  return data;
-};
-
-/**
- * Get active rates
- * @param {string} token - Authentication token
- * @returns {Promise<Array>} - List of active rates
- */
-export const getActiveRates = async (token) => {
-  const response = await fetch(`${apiUrl}Rate/Active`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch active rates');
   }
 
   return data;

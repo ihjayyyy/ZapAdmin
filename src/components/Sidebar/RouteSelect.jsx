@@ -132,6 +132,12 @@ const RouteSelect = ({ collapsed }) => {
         href="/rates"
       />
       <Route
+        Icon={IoPricetagsOutline}
+        title="Rate Breakdowns"
+        collapsed={collapsed}
+        href="/rateBreakdowns"
+      />
+      <Route
         Icon={BsBattery}
         title="Charging Sessions"
         collapsed={collapsed}
