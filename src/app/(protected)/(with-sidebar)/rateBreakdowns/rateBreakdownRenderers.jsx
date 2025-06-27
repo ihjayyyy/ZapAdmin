@@ -28,9 +28,7 @@ export const renderAmount = (amount) => {
 export const renderRateType = (rateType) => {
   const rateTypes = {
     0: { label: 'Flat Rate', className: 'bg-blue-100 text-blue-800' },
-    1: { label: 'Per kWh', className: 'bg-green-100 text-green-800' },
-    2: { label: 'Per Hour', className: 'bg-yellow-100 text-yellow-800' },
-    3: { label: 'Per Session', className: 'bg-purple-100 text-purple-800' }
+    1: { label: 'Per kWh', className: 'bg-green-100 text-green-800' }
   };
   
   const type = rateTypes[rateType] || { label: `Unknown (${rateType})`, className: 'bg-gray-100 text-gray-800' };

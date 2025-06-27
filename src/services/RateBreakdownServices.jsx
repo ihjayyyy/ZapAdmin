@@ -11,6 +11,9 @@ const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
  * @returns {Promise<Object>} - The created rate breakdown data
  */
 export const createRateBreakdown = async (rateBreakdownData, token) => {
+  // Debug logging
+  console.log('Service received data:', rateBreakdownData);
+  
   // Convert to match the API expected format
   const apiData = {
     rateId: Number(rateBreakdownData.rateId),
@@ -18,6 +21,8 @@ export const createRateBreakdown = async (rateBreakdownData, token) => {
     amount: parseFloat(rateBreakdownData.amount),
     rateType: Number(rateBreakdownData.rateType)
   };
+
+  console.log('API data being sent:', apiData);
 
   const response = await fetch(`${apiUrl}RateBreakdown`, {
     method: 'POST',
@@ -88,6 +93,7 @@ export const getRateBreakdownById = async (rateBreakdownId, token) => {
  */
 export const updateRateBreakdown = async (rateBreakdownId, rateBreakdownData, token) => {
   // Convert to match the API expected format
+  console.log('Service received data for update:', rateBreakdownData);
   const apiData = {
     rateId: Number(rateBreakdownData.rateId),
     name: rateBreakdownData.name,

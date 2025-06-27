@@ -27,15 +27,46 @@ function EntityFilterModal({
 
   // Handle filter change
   const handleFilterChange = (name, value) => {
+    // Convert value to appropriate type based on the filter option configuration
+    let processedValue = value;
+    
+    // If empty string, set to undefined to remove filter
+    if (value === '') {
+      processedValue = undefined;
+    } else {
+      const filterOption = filterOptions.find(opt => opt.name === name);
+      if (filterOption && filterOption.options) {
+        const selectedOption = filterOption.options.find(opt => String(opt.value || opt.id || opt.userId) === value);
+        if (selectedOption) {
+          // Prioritize 'value' property, then fallback to others
+          if (selectedOption.hasOwnProperty('value')) {
+            processedValue = selectedOption.value;
+          } else if (selectedOption.hasOwnProperty('id')) {
+            processedValue = selectedOption.id;
+          } else if (selectedOption.hasOwnProperty('userId')) {
+            processedValue = selectedOption.userId;
+          }
+        }
+      }
+    }
+    
     setFilters(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }));
   };
 
   // Handle submit button click
   const handleSubmit = () => {
-    onApplyFilters(filters);
+    // Remove undefined values before applying filters
+    const cleanedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    
+    onApplyFilters(cleanedFilters);
   };
 
   // Handle clear filters button click
@@ -58,7 +89,7 @@ function EntityFilterModal({
               {label}
             </label>
             <select
-              value={filters[name] || ''}
+              value={filters[name] !== undefined && filters[name] !== null ? String(filters[name]) : ''}
               onChange={(e) => handleFilterChange(name, e.target.value)}
               className="input"
               aria-label={`Filter by ${label.toLowerCase()}`}
@@ -67,9 +98,24 @@ function EntityFilterModal({
               {options.map((option, index) => {
                 // Create a unique key by combining multiple possible identifiers
                 const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
+                
+                // FIX: More explicit value handling - prioritize 'value' property for form options
+                let optionValue;
+                if (option.hasOwnProperty('value')) {
+                  optionValue = option.value;
+                } else if (option.hasOwnProperty('id')) {
+                  optionValue = option.id;
+                } else if (option.hasOwnProperty('userId')) {
+                  optionValue = option.userId;
+                } else {
+                  optionValue = '';
+                }
+                
+                const optionLabel = option.label || option.name || optionValue;
+                
                 return (
-                  <option key={uniqueKey} value={option.id || option.value || option.userId}>
-                    {option.name || option.label}
+                  <option key={uniqueKey} value={String(optionValue)}>
+                    {optionLabel}
                   </option>
                 );
               })}
@@ -92,9 +138,9 @@ function EntityFilterModal({
                     <input
                       type="radio"
                       name={name}
-                      value={option.value}
+                      value={String(option.value)}
                       checked={filters[name] === option.value}
-                      onChange={() => handleFilterChange(name, option.value)}
+                      onChange={() => handleFilterChange(name, String(option.value))}
                       className="mr-2"
                     />
                     {option.label}

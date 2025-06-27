@@ -41,6 +41,21 @@ function EntityFormModal({
       processedValue = parseFloat(value) || 0;
     } else if (type === 'checkbox') {
       processedValue = e.target.checked;
+    } else if (type === 'select-one') {
+      // FIX: More explicit handling for select values
+      // First check if it's an empty string (no selection)
+      if (value === '') {
+        processedValue = null;
+      } else {
+        // For numeric-looking values, convert to number
+        const numericValue = Number(value);
+        if (!isNaN(numericValue) && value.trim() !== '') {
+          processedValue = numericValue;
+        } else {
+          // Keep as string if it's not numeric
+          processedValue = value;
+        }
+      }
     }
     
     setCurrentEntity(prev => ({ ...prev, [name]: processedValue }));
@@ -73,6 +88,8 @@ function EntityFormModal({
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
     
+    console.log('EntityFormModal submitting:', currentEntity);
+    
     if (validateForm()) {
       onSubmit(currentEntity);
     }
@@ -85,50 +102,65 @@ function EntityFormModal({
     const isDisabled = onView || disabled;
     switch (type) {
         case 'select': {
-            const selectOptions = dropdownOptions[name] || options || [];
-            // Find the selected option to display its label in view mode
-            const selectedOption = selectOptions.find(
-              option => (option.id || option.userId || option.value) == currentEntity[name]
-            );
-            const displayValue = selectedOption ? (selectedOption.name || selectedOption.label) : '';
-            
-            return (
-              <div className="mb-4" key={name}>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  {label} {required && !onView && '*'}
-                </label>
-                {onView ? (
-                  <div className="py-2 px-3 bg-gray-50 border border-gray-200 rounded-md text-gray-700">
-                    {displayValue || 'Not specified'}
-                  </div>
-                ) : (
-                  <select
-                    name={name}
-                    value={currentEntity[name] || ''}
-                    onChange={handleInputChange}
-                    disabled={isDisabled}
-                    className="input"
-                  >
-                    <option value="">{`Select ${label}`}</option>
-                    {selectOptions.map((option, index) => {
-                      // Create a unique key by combining multiple possible identifiers
-                      const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
-                      return (
-                        <option key={uniqueKey} value={option.id || option.value || option.userId}>
-                          {option.name || option.label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                )}
-                {disabled && !onView && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {field.disabledMessage}
-                  </p>
-                )}
-              </div>
-            );
-          }
+          const selectOptions = dropdownOptions[name] || options || [];
+          // Find the selected option to display its label in view mode
+          const selectedOption = selectOptions.find(
+            option => (option.id || option.userId || option.value) == currentEntity[name]
+          );
+          const displayValue = selectedOption ? (selectedOption.name || selectedOption.label) : '';
+          
+          return (
+            <div className="mb-4" key={name}>
+              <label className="block text-gray-700 text-sm font-medium mb-2">
+                {label} {required && !onView && '*'}
+              </label>
+              {onView ? (
+                <div className="py-2 px-3 bg-gray-50 border border-gray-200 rounded-md text-gray-700">
+                  {displayValue || 'Not specified'}
+                </div>
+              ) : (
+                <select
+                  name={name}
+                  value={currentEntity[name] !== undefined && currentEntity[name] !== null ? String(currentEntity[name]) : ''}
+                  onChange={handleInputChange}
+                  disabled={isDisabled}
+                  className="input"
+                >
+                  <option value="">{`Select ${label}`}</option>
+                  {selectOptions.map((option, index) => {
+                    // Create a unique key by combining multiple possible identifiers
+                    const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
+                    
+                    // FIX: More explicit value handling - prioritize 'value' property for form options
+                    let optionValue;
+                    if (option.hasOwnProperty('value')) {
+                      optionValue = option.value;
+                    } else if (option.hasOwnProperty('id')) {
+                      optionValue = option.id;
+                    } else if (option.hasOwnProperty('userId')) {
+                      optionValue = option.userId;
+                    } else {
+                      optionValue = '';
+                    }
+                    
+                    const optionLabel = option.label || option.name || optionValue;
+                    
+                    return (
+                      <option key={uniqueKey} value={String(optionValue)}>
+                        {optionLabel}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+              {disabled && !onView && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {field.disabledMessage}
+                </p>
+              )}
+            </div>
+          );
+        }
           
         
       case 'textarea':

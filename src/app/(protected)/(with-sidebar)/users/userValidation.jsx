@@ -15,10 +15,6 @@ export const validateUserForm = (formData, setError) => {
         setError('Last Name is required');
         return false;
     }
-    if(!formData.password || formData.password.trim() === '') {
-        setError('Password is required');
-        return false;
-    }
     if(formData.userType === undefined || formData.userType === null) {
         setError('User Type is required');
         return false;

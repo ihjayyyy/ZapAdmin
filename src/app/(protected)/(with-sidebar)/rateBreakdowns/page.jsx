@@ -15,7 +15,7 @@ import {
   deleteRateBreakdown, 
   getPagedRateBreakdowns
 } from '@/services/RateBreakdownServices';
-import { rateBreakdownColumns } from './rateBreakdownConfig';
+import { rateBreakdownColumns, rateTypeOptions } from './rateBreakdownConfig';
 import { rateBreakdownFilterOptions } from './rateBreakdownConfig';
 import { rateBreakdownFormFields } from './rateBreakdownConfig';
 import { validateRateBreakdownForm } from './rateBreakdownValidation';
@@ -117,6 +117,10 @@ function RateBreakdownPage() {
     try {
       setLoading(true);
       
+      // Debug logging
+      console.log('Form data being submitted:', formData);
+      console.log('Rate type value:', formData.rateType, 'Type:', typeof formData.rateType);
+      
       if (formData.id) {
         await updateRateBreakdown(formData.id, formData, token);
         toast.success('Rate breakdown updated successfully');
@@ -128,6 +132,7 @@ function RateBreakdownPage() {
       setShowFormModal(false);
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
+      console.error('Form submission error:', error);
       toast.error(error.message || 'Failed to save rate breakdown');
     } finally {
       setLoading(false);
@@ -155,7 +160,7 @@ function RateBreakdownPage() {
     if (additionalFilters.rateId) {
       filterArray.push(`rateId=${parseInt(additionalFilters.rateId, 10)}`);
     }
-    if (additionalFilters.rateType !== undefined) {
+    if (additionalFilters.rateType !== undefined && additionalFilters.rateType !== null && additionalFilters.rateType !== '') {
       filterArray.push(`rateType=${additionalFilters.rateType}`);
     }
 
@@ -256,7 +261,10 @@ function RateBreakdownPage() {
         <EntityFormModal
           entity={currentRateBreakdown}
           formFields={rateBreakdownFormFields}
-          dropdownOptions={{ rateId: rateOptions }}
+          dropdownOptions={{ 
+            rateId: rateOptions,
+            rateType: rateTypeOptions
+          }}
           onSubmit={handleFormSubmit}
           onClose={() => setShowFormModal(false)}
           validateForm={validateRateBreakdownForm}
@@ -269,7 +277,10 @@ function RateBreakdownPage() {
         <EntityFormModal
           entity={currentRateBreakdown}
           formFields={rateBreakdownFormFields}
-          dropdownOptions={{ rateId: rateOptions }}
+          dropdownOptions={{ 
+            rateId: rateOptions,
+            rateType: rateTypeOptions
+          }}
           onClose={() => setShowViewModal(false)}
           entityName="Rate Breakdown"
           onView={true}

@@ -6,9 +6,7 @@
 // Rate type enum mapping
 export const rateTypeOptions = [
   { value: 0, label: 'Flat Rate' },
-  { value: 1, label: 'Per kWh' },
-  { value: 2, label: 'Per Hour' },
-  { value: 3, label: 'Per Session' }
+  { value: 1, label: 'Per kWh' }
 ];
 
 // Table columns definition
