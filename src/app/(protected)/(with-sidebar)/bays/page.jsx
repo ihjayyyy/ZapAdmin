@@ -28,6 +28,8 @@ function ChargingBaysPage() {
   const [filters, setFilters]=useState({});
   const [stationOptions, setStationOptions]= useState([])
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedBays, setSelectedBays] = useState([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   // Connector modal states
   const [selectedBayForConnector, setSelectedBayForConnector] = useState(null);
@@ -182,6 +184,34 @@ function ChargingBaysPage() {
     }
   };
 
+  // Bulk delete handlers
+  const handleBulkDelete = (selectedIds) => {
+    setSelectedBays(selectedIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setLoading(true);
+      
+      // Delete all selected bays
+      const deletePromises = selectedBays.map(bayId => 
+        deleteChargingBay(bayId, token)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      toast.success(`${selectedBays.length} charging bay(s) deleted successfully`);
+      setShowBulkDeleteModal(false);
+      setSelectedBays([]);
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete some charging bays');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const isOperator = user?.userType === 2;
   const operatorId = localStorage.getItem('operatorId');
 
@@ -258,7 +288,8 @@ function ChargingBaysPage() {
     initialPageSize:10,
     onFilterClick: () => setShowFilterModal(true),
     hasActiveFilters: Object.keys(filters).length > 0,
-    onAddClick: handleAddBay
+    onAddClick: handleAddBay,
+    onBulkDelete: handleBulkDelete
   }
   return (
     <>
@@ -369,6 +400,37 @@ function ChargingBaysPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+
+      {/* Bulk Delete Modal */}
+      <DynamicModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Confirm Bulk Delete"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete the selected charging bay(s)?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleConfirmBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete All
             </button>
           </div>
         </div>
