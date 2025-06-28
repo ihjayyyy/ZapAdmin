@@ -17,11 +17,10 @@ import DynamicTable from "@/components/DynamicTable";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { RiShieldUserLine } from 'react-icons/ri';
-import { operatorColumns, operatorFormFields } from './operatorConfig';
+import { operatorColumns, operatorFormFields, operatorStationConfig } from './operatorConfig';
 import { renderContact, renderActions } from './operatorRenderers';
 import { validateOperatorForm } from './operatorValidation';
 import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
-import { operatorStationConfig } from '@/components/ExpandableTableConfigs';
 import { stationFormFields } from '../stations/stationConfig';
 import { validateStationForm } from '../stations/stationValidation';
 
@@ -53,7 +52,9 @@ function OperatorsPage() {
     handleToggleExpand: baseHandleToggleExpand,
     handlePageChange,
     refreshRelatedData
-  } = useExpandableTable((operatorId, page, pageSize) => getPagedStationsByOperator(operatorId, page, pageSize, token));
+  } = useExpandableTable((operatorId, page, pageSize) => {
+    return getPagedStationsByOperator(operatorId, page, pageSize, token);
+  });
 
   // Wrapper to handle error messages
   const handleToggleExpand = async (operator) => {

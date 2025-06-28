@@ -9,13 +9,22 @@ import {
   toggleStationActivate,
 } from '../../../../services/StationServices';
 import { getAllOperators } from '../../../../services/OperatorServices';
+import { 
+  getPagedChargingBays,
+  createChargingBay,
+  updateChargingBay,
+  deleteChargingBay
+} from '../../../../services/ChargingBayServices';
 import DynamicTable from "@/components/DynamicTable";
 import EntityFilterModal from "@/components/EntityFilterModal";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
-import { stationColumns, stationFormFields, stationFilterOptions } from './stationConfig';
+import { stationColumns, stationFormFields, stationFilterOptions, stationChargingBayConfig } from './stationConfig';
 import { renderOperator, renderLocation, renderStatus, renderActions } from './stationRenderers';
 import { validateStationForm } from './stationValidation';
+import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
+import { bayFormFields } from '../bays/bayConfig';
+import { validateBayForm } from '../bays/bayValidation';
 import { BsEvStation } from "react-icons/bs";
 import { useAuth } from "@/context/AuthContext";
 
@@ -34,6 +43,43 @@ function StationPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedStations, setSelectedStations] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+  // Charging bay modal states
+  const [selectedStationForBay, setSelectedStationForBay] = useState(null);
+  const [currentBay, setCurrentBay] = useState(null);
+  const [showBayFormModal, setShowBayFormModal] = useState(false);
+  const [showBayViewModal, setShowBayViewModal] = useState(false);
+  const [showBayDeleteModal, setShowBayDeleteModal] = useState(false);
+
+  // Expandable table functionality for charging bays
+  const {
+    expandedRows,
+    relatedData: stationChargingBays,
+    loadingItems: loadingBays,
+    pagination,
+    currentPages,
+    handleToggleExpand: baseHandleToggleExpand,
+    handlePageChange,
+    refreshRelatedData
+  } = useExpandableTable((stationId, page, pageSize) => {
+    const pagingData = {
+      page: page,
+      pageSize: pageSize,
+      sortField: 'id',
+      sortAscending: true,
+      filter: [`stationId=${stationId}`]
+    };
+    return getPagedChargingBays(pagingData, token);
+  });
+
+  // Wrapper to handle error messages
+  const handleToggleExpand = async (station) => {
+    try {
+      await baseHandleToggleExpand(station);
+    } catch (error) {
+      toast.error(`Failed to load charging bays for ${station.name}: ${error.message}`);
+    }
+  };
 
 
   // Fetch all operators to map IDs to names
@@ -212,7 +258,23 @@ function StationPage() {
     (operatorId) => renderOperator(operatorId, operators), 
     renderLocation, 
     renderStatus, 
-    (_, item) => renderActions(_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus)
+    (_, item) => renderActions(_, item, handleViewStation, handleEditStation, handleDeleteConfirmation, handleToggleStatus, expandedRows, handleToggleExpand),
+    (_, item) => createExpandedContent(stationChargingBayConfig)(
+      _, 
+      item, 
+      expandedRows, 
+      stationChargingBays, 
+      loadingBays,
+      {
+        onAdd: handleAddBay,
+        onView: handleViewBay,
+        onEdit: handleEditBay,
+        onDelete: handleDeleteBay
+      },
+      pagination,
+      currentPages,
+      handlePageChange
+    )
   );
 
   // Add bulk delete handler
@@ -233,6 +295,79 @@ function StationPage() {
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       toast.error(error.message || 'Failed to delete stations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Charging Bay CRUD Handlers
+  const handleAddBay = (station) => {
+    setSelectedStationForBay(station);
+    setCurrentBay({
+      stationId: station.id,
+      code: '',
+      maxPower: 0,
+      stationKey: ''
+    });
+    setShowBayFormModal(true);
+  };
+
+  const handleViewBay = (bay) => {
+    setCurrentBay(bay);
+    setShowBayViewModal(true);
+  };
+
+  const handleEditBay = (bay) => {
+    setCurrentBay(bay);
+    setShowBayFormModal(true);
+  };
+
+  const handleDeleteBay = (bay) => {
+    setCurrentBay(bay);
+    setShowBayDeleteModal(true);
+  };
+
+  const handleBayFormSubmit = async (formData) => {
+    try {
+      setLoading(true);
+      
+      if (formData.id) {
+        // Update existing bay
+        await updateChargingBay(formData.id, formData, token);
+        toast.success('Charging bay updated successfully');
+      } else {
+        // Create new bay
+        await createChargingBay(formData, token);
+        toast.success('Charging bay created successfully');
+      }
+      
+      setShowBayFormModal(false);
+      
+      // Refresh the bays for the current station
+      if (selectedStationForBay || currentBay?.stationId) {
+        const stationId = selectedStationForBay?.id || currentBay.stationId;
+        await refreshRelatedData(stationId);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to save charging bay');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBayConfirm = async () => {
+    try {
+      setLoading(true);
+      await deleteChargingBay(currentBay.id, token);
+      toast.success('Charging bay deleted successfully');
+      setShowBayDeleteModal(false);
+      
+      // Refresh the bays for the current station
+      if (currentBay?.stationId) {
+        await refreshRelatedData(currentBay.stationId);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete charging bay');
     } finally {
       setLoading(false);
     }
@@ -347,6 +482,60 @@ function StationPage() {
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               Delete Selected
+            </button>
+          </div>
+        </div>
+      </DynamicModal>
+
+      {/* Charging Bay Create/Edit Form Modal */}
+      {showBayFormModal && (
+        <EntityFormModal
+          entity={currentBay}
+          formFields={bayFormFields}
+          onSubmit={handleBayFormSubmit}
+          onClose={() => setShowBayFormModal(false)}
+          validateForm={validateBayForm}
+          entityName="Charging Bay"
+        />
+      )}
+      
+      {/* Charging Bay View Details Modal */}
+      {showBayViewModal && (
+        <EntityFormModal
+          entity={currentBay}
+          formFields={bayFormFields}
+          onClose={() => setShowBayViewModal(false)}
+          entityName="Charging Bay"
+          onView={true}
+        />
+      )}
+      
+      {/* Charging Bay Delete Confirmation Modal */}
+      <DynamicModal
+        isOpen={showBayDeleteModal}
+        onClose={() => setShowBayDeleteModal(false)}
+        title="Confirm Delete Charging Bay"
+        size="md"
+      >
+        <div className="p-2">
+          <p className="mb-4">Are you sure you want to delete the charging bay <strong>{currentBay?.code}</strong>?</p>
+          <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+            <button
+              type="button"
+              onClick={() => setShowBayDeleteModal(false)}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleDeleteBayConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete
             </button>
           </div>
         </div>

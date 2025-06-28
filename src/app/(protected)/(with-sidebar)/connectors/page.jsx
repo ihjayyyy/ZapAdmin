@@ -13,8 +13,9 @@ import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { connectorColumns, connectorFormFields, connectorFilterOptions } from './connectorConfig';
 import { renderPrice, renderActions, renderStatus } from './connectorRenderers';
-import { BsPlug } from "react-icons/bs";
 import { useAuth } from "@/context/AuthContext";
+import { PiPlugChargingBold } from "react-icons/pi";
+
 
 function ConnectorsPage() {
   const token = localStorage.getItem('token');
@@ -181,7 +182,7 @@ function ConnectorsPage() {
 
   const customTableProps = {
     title: "Connectors",
-    icon: BsPlug,
+    icon: PiPlugChargingBold,
     fetchData: fetchData,
     columns: columns,
     initialPageSize: 10,

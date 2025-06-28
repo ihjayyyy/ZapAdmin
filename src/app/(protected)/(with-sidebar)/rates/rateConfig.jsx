@@ -3,15 +3,22 @@
  * Contains table columns, form fields, and filter options
  */
 
+import { 
+  renderRateBreakdownName,
+  renderRateBreakdownAmountColumn, 
+  renderRateTypeColumn, 
+  renderRateBreakdownItem 
+} from './rateRenderers';
+
 // Table columns definition
 export const rateColumns = (renderChargingBay, renderStatus, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
+  { key: 'name', label: 'Name', className: 'max-column-width' },
   { 
     key: 'chargingBayId', 
     label: 'Charging Bay',
     render: renderChargingBay
   },
-  { key: 'name', label: 'Name', className: 'max-column-width' },
   {
     key: 'status',
     label: 'Status',
@@ -73,3 +80,29 @@ export const rateFilterOptions = (chargingBayOptions) => [
     ]
   }
 ];
+
+// Expandable table configuration for Rate → Rate Breakdowns relationship
+export const rateBreakdownConfig = {
+  entityName: 'Rate Breakdown',
+  parentEntityName: 'Rate',
+  title: 'Rate Breakdowns',
+  parentNameField: 'name',
+  tableColumns: [
+    { 
+      key: 'name', 
+      label: 'Name',
+      render: renderRateBreakdownName
+    },
+    { 
+      key: 'amount', 
+      label: 'Amount',
+      render: renderRateBreakdownAmountColumn
+    },
+    { 
+      key: 'rateType', 
+      label: 'Rate Type',
+      render: renderRateTypeColumn
+    }
+  ],
+  renderItem: renderRateBreakdownItem
+};

@@ -64,51 +64,117 @@ export const createExpandedContent = (config) => (_, item, expandedRows, related
         </div>
       ) : items.length > 0 ? (
         <>
-          <div className="space-y-2">
-            {items.map((relatedItem, index) => (
-              <div 
-                key={relatedItem.id || index} 
-                className="bg-white rounded p-3 border border-gray-200 text-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    {config.renderItem ? (
-                      config.renderItem(relatedItem)
-                    ) : (
-                      <span className="font-medium text-gray-800">{relatedItem.name}</span>
+          {config.tableColumns ? (
+            // Table format with headers
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto border border-gray-200 rounded">
+                <thead>
+                  <tr className="bg-deepblue-500 text-white text-xs">
+                    {config.tableColumns.map((column) => (
+                      <th key={column.key} className="text-left px-3 py-2 font-medium">
+                        {column.label}
+                      </th>
+                    ))}
+                    {crudHandlers && (
+                      <th className="text-left px-3 py-2 font-medium">Actions</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((relatedItem, index) => (
+                    <tr 
+                      key={relatedItem.id || index} 
+                      className={`text-sm ${index % 2 ? 'bg-gray-50' : 'bg-white'} border-b border-gray-100`}
+                    >
+                      {config.tableColumns.map((column) => (
+                        <td key={column.key} className="px-3 py-2">
+                          {column.render ? 
+                            column.render(relatedItem[column.key], relatedItem) : 
+                            relatedItem[column.key]
+                          }
+                        </td>
+                      ))}
+                      {crudHandlers && (
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-1">
+                            <ActionButtons
+                              actions={[
+                                crudHandlers.onView && { 
+                                  onClick: () => crudHandlers.onView(relatedItem), 
+                                  icon: FiEye, 
+                                  title: 'View',
+                                  className: 'hover:bg-gray-100 text-gray-600'
+                                },
+                                crudHandlers.onEdit && { 
+                                  onClick: () => crudHandlers.onEdit(relatedItem), 
+                                  icon: FiEdit, 
+                                  title: 'Edit', 
+                                  className: 'hover:bg-blue-100 text-blue-600' 
+                                },
+                                crudHandlers.onDelete && { 
+                                  onClick: () => crudHandlers.onDelete(relatedItem), 
+                                  icon: FiTrash2, 
+                                  title: 'Delete', 
+                                  className: 'hover:bg-red-100 text-red-600' 
+                                }
+                              ].filter(Boolean)}
+                            />
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            // Legacy card format (fallback)
+            <div className="space-y-2">
+              {items.map((relatedItem, index) => (
+                <div 
+                  key={relatedItem.id || index} 
+                  className="bg-white rounded p-3 border border-gray-200 text-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      {config.renderItem ? (
+                        config.renderItem(relatedItem)
+                      ) : (
+                        <span className="font-medium text-gray-800">{relatedItem.name}</span>
+                      )}
+                    </div>
+                    
+                    {crudHandlers && (
+                      <div className="flex items-center gap-1">
+                        <ActionButtons
+                          actions={[
+                            crudHandlers.onView && { 
+                              onClick: () => crudHandlers.onView(relatedItem), 
+                              icon: FiEye, 
+                              title: 'View',
+                              className: 'hover:bg-gray-100 text-gray-600'
+                            },
+                            crudHandlers.onEdit && { 
+                              onClick: () => crudHandlers.onEdit(relatedItem), 
+                              icon: FiEdit, 
+                              title: 'Edit', 
+                              className: 'hover:bg-blue-100 text-blue-600' 
+                            },
+                            crudHandlers.onDelete && { 
+                              onClick: () => crudHandlers.onDelete(relatedItem), 
+                              icon: FiTrash2, 
+                              title: 'Delete', 
+                              className: 'hover:bg-red-100 text-red-600' 
+                            }
+                          ].filter(Boolean)}
+                        />
+                      </div>
                     )}
                   </div>
-                  
-                  {crudHandlers && (
-                    <div className="flex items-center gap-1">
-                      <ActionButtons
-                        actions={[
-                          crudHandlers.onView && { 
-                            onClick: () => crudHandlers.onView(relatedItem), 
-                            icon: FiEye, 
-                            title: 'View',
-                            className: 'hover:bg-gray-100 text-gray-600'
-                          },
-                          crudHandlers.onEdit && { 
-                            onClick: () => crudHandlers.onEdit(relatedItem), 
-                            icon: FiEdit, 
-                            title: 'Edit', 
-                            className: 'hover:bg-blue-100 text-blue-600' 
-                          },
-                          crudHandlers.onDelete && { 
-                            onClick: () => crudHandlers.onDelete(relatedItem), 
-                            icon: FiTrash2, 
-                            title: 'Delete', 
-                            className: 'hover:bg-red-100 text-red-600' 
-                          }
-                        ].filter(Boolean)}
-                      />
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
           {/* Pagination Controls */}
           {paginationInfo && paginationInfo.totalPages > 1 && (
@@ -150,7 +216,7 @@ export const createExpandedContent = (config) => (_, item, expandedRows, related
 /**
  * Hook for managing expandable table state and operations with pagination
  */
-export const useExpandableTable = (fetchRelatedData, initialPageSize = 5) => {
+export const useExpandableTable = (fetchRelatedData, initialPageSize = 3) => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [relatedData, setRelatedData] = useState({});
   const [loadingItems, setLoadingItems] = useState(new Set());
@@ -180,17 +246,21 @@ export const useExpandableTable = (fetchRelatedData, initialPageSize = 5) => {
     try {
       const result = await fetchRelatedData(parentId, page, initialPageSize);
       
+      // Handle different response formats
+      const data = result.data || result.result || [];
+      const totalItems = result.totalItems || result.Pagination?.length || 0;
+      
       setRelatedData(prev => ({
         ...prev,
-        [parentId]: result.data || []
+        [parentId]: data
       }));
       
       setPagination(prev => ({
         ...prev,
         [parentId]: {
-          totalItems: result.totalItems || 0,
+          totalItems: totalItems,
           pageSize: initialPageSize,
-          totalPages: Math.ceil((result.totalItems || 0) / initialPageSize)
+          totalPages: Math.ceil(totalItems / initialPageSize)
         }
       }));
       

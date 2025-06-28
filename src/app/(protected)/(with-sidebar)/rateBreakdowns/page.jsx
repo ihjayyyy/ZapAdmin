@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BsCurrencyDollar } from 'react-icons/bs';
+import { TbFileInvoice } from "react-icons/tb";
 import { toast } from 'react-toastify';
 import DynamicTable from '@/components/DynamicTable';
 import DynamicModal from '@/components/DynamicModal';
@@ -231,7 +231,7 @@ function RateBreakdownPage() {
 
   const customTableProps = {
     title: "Rate Breakdowns",
-    icon: BsCurrencyDollar,
+    icon: TbFileInvoice,
     fetchData: fetchData,
     columns: columns,
     initialPageSize: 10,

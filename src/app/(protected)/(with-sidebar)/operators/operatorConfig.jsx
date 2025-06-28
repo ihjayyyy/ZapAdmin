@@ -3,6 +3,13 @@
  * Contains table columns and form fields
  */
 
+import { renderLocation } from '../stations/stationRenderers';
+import { 
+  renderStationName,
+  renderStationStatus, 
+  renderStationItem 
+} from './operatorRenderers';
+
 // Table columns definition
 export const operatorColumns = (renderContact, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
@@ -64,3 +71,32 @@ export const operatorFormFields = [
     gridGroup: 'basic'
   }
 ];
+
+// Expandable table configuration for Operator → Stations relationship
+export const operatorStationConfig = {
+  entityName: 'Station',
+  parentEntityName: 'Operator',
+  title: 'Stations',
+  parentNameField: 'name',
+  tableColumns: [
+    { key: 'id', label: 'ID' },
+    { 
+      key: 'name', 
+      label: 'Name',
+      render: renderStationName
+    },
+    { key: 'address', label: 'Address' },
+    { 
+      key: 'location', 
+      label: 'Location',
+      render: (_, station) => renderLocation(_, station)
+    },
+    { 
+      key: 'active', 
+      label: 'Status',
+      render: renderStationStatus
+    },
+    { key: 'additionalInfo', label: 'Additional Info' }
+  ],
+  renderItem: renderStationItem
+};

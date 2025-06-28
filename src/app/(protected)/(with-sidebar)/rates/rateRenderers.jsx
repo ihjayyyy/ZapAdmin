@@ -158,3 +158,29 @@ export const renderExpandedContent = (
     </div>
   );
 };
+
+// Render functions for rate breakdown table columns
+export const renderRateBreakdownName = (name) => (
+  <span className="font-medium text-gray-800">{name}</span>
+);
+
+export const renderRateBreakdownAmountColumn = (amount) => renderRateBreakdownAmount(amount);
+
+export const renderRateTypeColumn = (rateType) => renderRateType(rateType);
+
+// Render function for expanded rate breakdown content
+export const renderRateBreakdownItem = (breakdown) => (
+  <div className="flex items-center justify-between w-full">
+    <div className="flex-1">
+      <span className="font-medium text-gray-800">{breakdown.name}</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <div className="text-right">
+        {renderRateBreakdownAmount(breakdown.amount)}
+      </div>
+      <div>
+        {renderRateType(breakdown.rateType)}
+      </div>
+    </div>
+  </div>
+);

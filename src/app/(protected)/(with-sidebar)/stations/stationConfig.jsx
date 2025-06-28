@@ -3,8 +3,15 @@
  * Contains table columns, form fields, and filter options
  */
 
+import { 
+  renderChargingBayCode, 
+  renderChargingBayMaxPower, 
+  renderChargingBayStatus, 
+  renderChargingBayItem 
+} from './stationRenderers';
+
 // Table columns definition
-export const stationColumns = (renderOperator, renderLocation, renderStatus, renderActions) => [
+export const stationColumns = (renderOperator, renderLocation, renderStatus, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
   { 
     key: 'operatorId', 
@@ -28,6 +35,12 @@ export const stationColumns = (renderOperator, renderLocation, renderStatus, ren
     key: 'actions',
     label: 'Actions',
     render: renderActions
+  },
+  {
+    key: 'expandedContent',
+    label: '',
+    render: renderExpandedContent,
+    className: 'hidden' // This will be shown/hidden dynamically
   }
 ];
 
@@ -94,3 +107,34 @@ export const stationFilterOptions = (operatorOptions) => [
     ]
   }
 ];
+
+// Expandable table configuration for Station → Charging Bays relationship
+export const stationChargingBayConfig = {
+  entityName: 'Charging Bay',
+  parentEntityName: 'Station',
+  title: 'Charging Bays',
+  parentNameField: 'name',
+  tableColumns: [
+    { key: 'id', label: 'ID' },
+    { 
+      key: 'code', 
+      label: 'Code',
+      render: renderChargingBayCode
+    },
+    { 
+      key: 'stationKey', 
+      label: 'Station Key'
+    },
+    { 
+      key: 'maxPower', 
+      label: 'Max Power',
+      render: renderChargingBayMaxPower
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: renderChargingBayStatus
+    }
+  ],
+  renderItem: renderChargingBayItem
+};

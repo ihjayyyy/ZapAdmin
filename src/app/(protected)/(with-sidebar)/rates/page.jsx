@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BsCurrencyDollar } from 'react-icons/bs';
+import { IoPricetagsOutline } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import DynamicTable from '@/components/DynamicTable';
 import DynamicModal from '@/components/DynamicModal';
@@ -22,15 +22,12 @@ import {
   updateRateBreakdown,
   deleteRateBreakdown
 } from '@/services/RateBreakdownServices';
-import { rateColumns } from './rateConfig';
-import { rateFilterOptions } from './rateConfig';
-import { rateFormFields } from './rateConfig';
+import { rateColumns, rateFilterOptions, rateFormFields, rateBreakdownConfig } from './rateConfig';
 import { validateRateForm } from './rateValidation';
 import { renderChargingBay, renderStatus, renderActions } from './rateRenderers';
 import { rateBreakdownFormFields, rateTypeOptions } from '../rateBreakdowns/rateBreakdownConfig';
 import { validateRateBreakdownForm } from '../rateBreakdowns/rateBreakdownValidation';
 import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
-import { rateBreakdownConfig } from '@/components/ExpandableTableConfigs';
 
 function RatePage() {
   const { user } = useAuth();
@@ -365,7 +362,7 @@ function RatePage() {
 
   const customTableProps = {
     title: "Rates",
-    icon: BsCurrencyDollar,
+    icon: IoPricetagsOutline,
     fetchData: fetchData,
     columns: columns,
     initialPageSize: 10,

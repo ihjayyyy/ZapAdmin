@@ -10,6 +10,8 @@ import { MdOutlineElectricCar } from "react-icons/md";
 import { PiPlugChargingBold } from "react-icons/pi";
 import { PiUserList } from "react-icons/pi";
 import { IoPricetagsOutline } from "react-icons/io5";
+import { TbFileInvoice } from "react-icons/tb";
+
 
 const Route = ({ Icon, title, collapsed, href }) => {
   const router = useRouter();
@@ -132,7 +134,7 @@ const RouteSelect = ({ collapsed }) => {
         href="/rates"
       />
       <Route
-        Icon={IoPricetagsOutline}
+        Icon={TbFileInvoice }
         title="Rate Breakdowns"
         collapsed={collapsed}
         href="/rateBreakdowns"
