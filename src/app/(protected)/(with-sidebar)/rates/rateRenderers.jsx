@@ -4,9 +4,19 @@ import ActionButtons from '@/components/ActionButtons';
 import StatusChip from '@/components/StatusChip';
 import { renderAmount as renderRateBreakdownAmount, renderRateType } from '../rateBreakdowns/rateBreakdownRenderers';
 
-// Custom renderer for charging bay information
-export const renderChargingBay = (chargingBayId, chargingBays) => {
-  return chargingBays[chargingBayId] || `Unknown (ID: ${chargingBayId})`;
+// Custom renderer for connector information
+export const renderConnector = (connectorId, connectors) => {
+  return connectors[connectorId] || `Unknown (ID: ${connectorId})`;
+};
+
+// Custom renderer for additional fee
+export const renderAdditionalFee = (fee) => {
+  return `$${Number(fee || 0).toFixed(2)}`;
+};
+
+// Custom renderer for rate per kWh
+export const renderRateKWH = (rate) => {
+  return `$${Number(rate || 0).toFixed(2)}/kWh`;
 };
 
 // Custom renderer for status

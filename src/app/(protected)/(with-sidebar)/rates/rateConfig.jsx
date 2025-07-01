@@ -11,13 +11,23 @@ import {
 } from './rateRenderers';
 
 // Table columns definition
-export const rateColumns = (renderChargingBay, renderStatus, renderActions, renderExpandedContent) => [
+export const rateColumns = (renderConnector, renderStatus, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Name', className: 'max-column-width' },
   { 
-    key: 'chargingBayId', 
-    label: 'Charging Bay',
-    render: renderChargingBay
+    key: 'connectorId', 
+    label: 'Connector',
+    render: renderConnector
+  },
+  {
+    key: 'additionalFee',
+    label: 'Additional Fee',
+    render: (value) => `$${Number(value || 0).toFixed(2)}`
+  },
+  {
+    key: 'rateKWH',
+    label: 'Rate/kWh',
+    render: (value) => `$${Number(value || 0).toFixed(2)}`
   },
   {
     key: 'status',
@@ -40,8 +50,8 @@ export const rateColumns = (renderChargingBay, renderStatus, renderActions, rend
 // Form fields for rate creation/editing
 export const rateFormFields = [
   { 
-    name: 'chargingBayId', 
-    label: 'Charging Bay', 
+    name: 'connectorId', 
+    label: 'Connector', 
     type: 'select',
     required: true,
     gridGroup: 'basic'
@@ -63,12 +73,12 @@ export const rateFormFields = [
 ];
 
 // Filter options configuration for the modal
-export const rateFilterOptions = (chargingBayOptions) => [
+export const rateFilterOptions = (connectorOptions) => [
   {
     type: 'select',
-    name: 'chargingBayId',
-    label: 'Charging Bay',
-    options: chargingBayOptions
+    name: 'connectorId',
+    label: 'Connector',
+    options: connectorOptions
   },
   {
     type: 'radio',

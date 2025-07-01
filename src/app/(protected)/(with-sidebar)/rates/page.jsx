@@ -8,7 +8,7 @@ import DynamicModal from '@/components/DynamicModal';
 import EntityFilterModal from '@/components/EntityFilterModal';
 import EntityFormModal from '@/components/EntityFormModal';
 import { useAuth } from '@/context/AuthContext';
-import { getAllChargingBays } from '@/services/ChargingBayServices';
+import { getAllConnectors } from '@/services/ConnectorServices';
 import { 
   createRate, 
   updateRate, 
@@ -24,7 +24,7 @@ import {
 } from '@/services/RateBreakdownServices';
 import { rateColumns, rateFilterOptions, rateFormFields, rateBreakdownConfig } from './rateConfig';
 import { validateRateForm } from './rateValidation';
-import { renderChargingBay, renderStatus, renderActions } from './rateRenderers';
+import { renderConnector, renderStatus, renderActions } from './rateRenderers';
 import { rateBreakdownFormFields, rateTypeOptions } from '../rateBreakdowns/rateBreakdownConfig';
 import { validateRateBreakdownForm } from '../rateBreakdowns/rateBreakdownValidation';
 import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
@@ -32,7 +32,7 @@ import { useExpandableTable, createExpandedContent } from '@/components/Expandab
 function RatePage() {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
-  const [chargingBays, setChargingBays] = useState({});
+  const [connectors, setConnectors] = useState({});
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -40,7 +40,7 @@ function RatePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentRate, setCurrentRate] = useState(null);
   const [filters, setFilters] = useState({});
-  const [chargingBayOptions, setChargingBayOptions] = useState([]);
+  const [connectorOptions, setConnectorOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedRates, setSelectedRates] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -73,37 +73,37 @@ function RatePage() {
     }
   };
 
-  // Fetch all charging bays to map IDs to names
+  // Fetch all connectors to map IDs to names
   useEffect(() => {
-    const loadChargingBays = async () => {
+    const loadConnectors = async () => {
       try {
-        const chargingBayData = await getAllChargingBays(token);
-        console.log('Charging Bay Data:', chargingBayData);
-        // Create a mapping of charging bay ID to charging bay name
-        const chargingBayMap = {};
+        const connectorData = await getAllConnectors(token);
+        console.log('Connector Data:', connectorData);
+        // Create a mapping of connector ID to connector name
+        const connectorMap = {};
         const options = [];
-        chargingBayData.forEach(bay => {
-          chargingBayMap[bay.id] = bay.code;
-          // Store chargeBayId as number, not string
-          options.push({ value: bay.id, label: bay.code });
+        connectorData.forEach(connector => {
+          connectorMap[connector.id] = connector.connectorType;
+          // Store connectorId as number, not string
+          options.push({ value: connector.id, label: connector.connectorType });
         });
-        setChargingBays(chargingBayMap);
-        setChargingBayOptions(options);
+        setConnectors(connectorMap);
+        setConnectorOptions(options);
       } catch (error) {
-        toast.error(error.message || 'Failed to load charging bays');
+        toast.error(error.message || 'Failed to load connectors');
       } finally {
         setLoading(false);
       }
     };
 
-    loadChargingBays();
+    loadConnectors();
   }, [token]);
 
   // Handle adding a new rate
   const handleAddRate = () => {
-    console.log(chargingBayOptions)
+    console.log(connectorOptions)
     setCurrentRate({
-      chargingBayId: chargingBayOptions.length > 0 ? chargingBayOptions[0].value : null,
+      connectorId: connectorOptions.length > 0 ? connectorOptions[0].value : null,
       name: '',
       status: true
     });
@@ -201,15 +201,15 @@ function RatePage() {
     const filterArray = [...(baseFilters || [])];
 
     // Add filter from additionalFilters if provided
-    if (additionalFilters.chargingBayId) {
-      filterArray.push(`chargingBayId=${parseInt(additionalFilters.chargingBayId, 10)}`);
+    if (additionalFilters.connectorId) {
+      filterArray.push(`connectorId=${parseInt(additionalFilters.connectorId, 10)}`);
     }
     if (additionalFilters.status !== undefined) {
       filterArray.push(`status=${additionalFilters.status}`);
     }
 
     if (isOperator && operatorId) {
-      // For operators, we need to filter rates by their charging bays
+      // For operators, we need to filter rates by their connectors
       if (!filterArray.some(f => f.startsWith("operatorId="))) {
         filterArray.push(`operatorId=${operatorId}`);
       }
@@ -244,7 +244,7 @@ function RatePage() {
   }, [token, filters, buildFilterString, refreshTrigger]);
 
   const columns = rateColumns(
-    (chargingBayId) => renderChargingBay(chargingBayId, chargingBays),
+    (connectorId) => renderConnector(connectorId, connectors),
     renderStatus,
     (_, item) => renderActions(_, item, handleViewRate, handleEditRate, handleDeleteConfirmation, handleToggleStatus, expandedRows, handleToggleExpand),
     (_, item) => createExpandedContent(rateBreakdownConfig)(
@@ -403,7 +403,7 @@ function RatePage() {
       <EntityFilterModal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
-        filterOptions={rateFilterOptions(chargingBayOptions)}
+        filterOptions={rateFilterOptions(connectorOptions)}
         currentFilters={filters}
         onApplyFilters={handleApplyFilters}
         onClearFilters={handleClearFilters}
@@ -415,7 +415,7 @@ function RatePage() {
         <EntityFormModal
           entity={currentRate}
           formFields={rateFormFields}
-          dropdownOptions={{ chargingBayId: chargingBayOptions }}
+          dropdownOptions={{ connectorId: connectorOptions }}
           onSubmit={handleFormSubmit}
           onClose={() => setShowFormModal(false)}
           validateForm={validateRateForm}
@@ -428,7 +428,7 @@ function RatePage() {
         <EntityFormModal
           entity={currentRate}
           formFields={rateFormFields}
-          dropdownOptions={{ chargingBayId: chargingBayOptions }}
+          dropdownOptions={{ connectorId: connectorOptions }}
           onClose={() => setShowViewModal(false)}
           entityName="Rate"
           onView={true}

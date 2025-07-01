@@ -4,8 +4,8 @@
 
 // Form validation function
 export const validateRateForm = (formData, setError) => {
-  if (!formData.chargingBayId) {
-    setError('Charging Bay is required');
+  if (!formData.connectorId) {
+    setError('Connector is required');
     return false;
   }
   

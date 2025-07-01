@@ -4,8 +4,10 @@ const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
  * Create a new rate
  * @param {Object} rateData - The rate data
  * @param {string} rateData.name - Name of the rate
- * @param {number} rateData.chargingBayId - ID of the charging bay
+ * @param {number} rateData.connectorId - ID of the connector
  * @param {boolean} rateData.status - Whether the rate is active
+ * @param {number} rateData.additionalFee - Additional fee for the rate
+ * @param {number} rateData.rateKWH - Rate per kWh
  * @param {string} token - Authentication token
  * @returns {Promise<Object>} - The created rate data
  */
@@ -13,7 +15,7 @@ export const createRate = async (rateData, token) => {
   // Convert to match the API expected format
   const apiData = {
     name: rateData.name,
-    chargingBayId: Number(rateData.chargingBayId),
+    connectorId: Number(rateData.connectorId),
     status: rateData.status !== false
   };
 
@@ -88,7 +90,7 @@ export const updateRate = async (rateId, rateData, token) => {
   // Convert to match the API expected format
   const apiData = {
     name: rateData.name,
-    chargingBayId: Number(rateData.chargingBayId),
+    connectorId: Number(rateData.connectorId),
     status: rateData.status !== false
   };
 
@@ -134,13 +136,13 @@ export const deleteRate = async (rateId, token) => {
 };
 
 /**
- * Get rates by charging bay ID
- * @param {string} chargingBayId - ID of the charging bay
+ * Get rates by connector ID
+ * @param {string} connectorId - ID of the connector
  * @param {string} token - Authentication token
- * @returns {Promise<Array>} - List of rates for the charging bay
+ * @returns {Promise<Array>} - List of rates for the connector
  */
-export const getRatesByChargingBay = async (chargingBayId, token) => {
-  const response = await fetch(`${apiUrl}Rate/ChargingBay/${chargingBayId}`, {
+export const getRatesByConnector = async (connectorId, token) => {
+  const response = await fetch(`${apiUrl}Rate/Connector/${connectorId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -149,7 +151,7 @@ export const getRatesByChargingBay = async (chargingBayId, token) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch charging bay rates');
+    throw new Error(data.message || 'Failed to fetch connector rates');
   }
 
   return data;
