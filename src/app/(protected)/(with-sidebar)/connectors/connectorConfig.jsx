@@ -4,7 +4,7 @@
  */
 
 // Table columns definition
-export const connectorColumns = (renderActions, renderPrice, renderStatus) => [
+export const connectorColumns = (renderActions, renderPrice, renderStatus, renderQRCode) => [
   { key: 'id', label: 'ID' },
   { key: 'chargeBayId', label: 'Bay ID' },
   { key: 'connectorType', label: 'Connector Type' },
@@ -18,6 +18,11 @@ export const connectorColumns = (renderActions, renderPrice, renderStatus) => [
     key: 'price', 
     label: 'Price',
     render: renderPrice
+  },
+  { 
+    key: 'qrCode', 
+    label: 'QR Code',
+    render: renderQRCode
   },
   {
     key: 'actions',
@@ -36,7 +41,7 @@ export const connectorFormFields = [
     gridGroup: 'basic'
   },
   { 
-    name: 'chargingBayId', 
+    name: 'chargeBayId', 
     label: 'Charging Bay ID', 
     type: 'number',
     readOnly: true,
@@ -50,6 +55,13 @@ export const connectorFormFields = [
     gridGroup: 'details'
   },
   { 
+    name: 'connectorName', 
+    label: 'Connector Name', 
+    type: 'text',
+    readOnly: true,
+    gridGroup: 'details'
+  },
+  { 
     name: 'price', 
     label: 'Price', 
     type: 'number',
@@ -58,11 +70,18 @@ export const connectorFormFields = [
     gridGroup: 'details'
   },
   { 
-    name: 'chargingPayId', 
-    label: 'Charging Pay ID', 
-    type: 'number',
+    name: 'lastStatus', 
+    label: 'Last Status', 
+    type: 'text',
     readOnly: true,
-    gridGroup: 'payment'
+    gridGroup: 'status'
+  },
+  { 
+    name: 'qrCode', 
+    label: 'QR Code', 
+    type: 'qrcode',
+    readOnly: true,
+    gridGroup: 'qr'
   }
 ];
 

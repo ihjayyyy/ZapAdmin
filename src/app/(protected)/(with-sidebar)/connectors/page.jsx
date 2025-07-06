@@ -4,7 +4,8 @@ import { toast } from 'react-toastify';
 import { 
   getPagedConnectors, 
   deleteConnector, 
-  getConnectorTypes
+  getConnectorTypes,
+  generateConnectorQRCode
 } from '../../../../services/ConnectorServices';
 import { getAllChargingBays } from '../../../../services/ChargingBayServices';
 import DynamicTable from "@/components/DynamicTable";
@@ -12,9 +13,10 @@ import EntityFilterModal from "@/components/EntityFilterModal";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { connectorColumns, connectorFormFields, connectorFilterOptions } from './connectorConfig';
-import { renderPrice, renderActions, renderStatus } from './connectorRenderers';
+import { renderPrice, renderActions, renderStatus, renderQRCode } from './connectorRenderers';
 import { useAuth } from "@/context/AuthContext";
 import { PiPlugChargingBold } from "react-icons/pi";
+import { AiOutlineDownload } from "react-icons/ai";
 
 
 function ConnectorsPage() {
@@ -31,6 +33,8 @@ function ConnectorsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedConnectors, setSelectedConnectors] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
+  const [currentQRCode, setCurrentQRCode] = useState(null);
   
   // Fetch connector types and charging bays for filter dropdowns
   useEffect(() => {
@@ -66,6 +70,56 @@ function ConnectorsPage() {
   const handleViewConnector =(connector) => {
       setCurrentConnector(connector);
       setShowViewModal(true);
+  };
+
+  // Handle QR code generation
+  const handleGenerateQRCode = async (connector) => {
+    try {
+      setLoading(true);
+      const response = await generateConnectorQRCode(connector.id, token);
+      console.log('QR Code API Response:', response); // Debug log
+      
+      // Update the current QR code for the modal
+      setCurrentQRCode({
+        QRCode: response.qrCode, // Use the qrCode field from response
+        ConnectorId: response.connectorId,
+        connectorInfo: connector
+      });
+      setShowQRCodeModal(true);
+      
+      // Force refresh data to show updated QR code status in table
+      setRefreshTrigger(prev => prev + 1);
+      toast.success('QR Code generated successfully');
+    } catch (error) {
+      console.error('QR Code generation error:', error); // Debug log
+      toast.error(error.message || 'Failed to generate QR code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle viewing existing QR code
+  const handleViewQRCode = (connector) => {
+    // Use the qrCode field from the connector data
+    const qrCodeData = connector.qrCode || connector.QRCode;
+    setCurrentQRCode({
+      QRCode: qrCodeData,
+      ConnectorId: connector.id,
+      connectorInfo: connector
+    });
+    setShowQRCodeModal(true);
+  };
+
+  // Handle QR code download
+  const handleDownloadQRCode = () => {
+    if (!currentQRCode?.QRCode) return;
+    
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${currentQRCode.QRCode}`;
+    link.download = `connector-${currentQRCode.ConnectorId}-qr-code.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Handle delete confirmation
@@ -175,9 +229,10 @@ function ConnectorsPage() {
   }, [token, filters, buildFilterString,refreshTrigger]);
 
   const columns = connectorColumns(
-    (_, item) => renderActions(_, item, handleViewConnector, handleDeleteConfirmation),
+    (_, item) => renderActions(_, item, handleViewConnector, handleDeleteConfirmation, handleGenerateQRCode),
     renderPrice,
-    renderStatus
+    renderStatus,
+    (qrCode, item) => renderQRCode(qrCode, item, handleGenerateQRCode, handleViewQRCode)
   );
 
   const customTableProps = {
@@ -283,6 +338,72 @@ function ConnectorsPage() {
               Delete Selected
             </button>
           </div>
+        </div>
+      </DynamicModal>
+
+      {/* QR Code Modal */}
+      <DynamicModal
+        isOpen={showQRCodeModal}
+        onClose={() => setShowQRCodeModal(false)}
+        title="Connector QR Code"
+        size="md"
+      >
+        <div className="text-center">
+          {currentQRCode && (
+            <>
+              <div className="mb-2">
+                <h3 className="text-lg font-semibold mb-1">
+                  Connector ID: {currentQRCode.ConnectorId}
+                </h3>
+                {currentQRCode.connectorInfo && (
+                  <div className="text-sm text-gray-600 mb-4">
+                    <p>Bay ID: {currentQRCode.connectorInfo.chargeBayId}</p>
+                    <p>Type: {currentQRCode.connectorInfo.connectorType}</p>
+                    <p>Price: ₱{parseFloat(currentQRCode.connectorInfo.price || 0).toFixed(2)}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mb-4 flex justify-center">
+                {currentQRCode.QRCode ? (
+                  <img
+                    src={`data:image/png;base64,${currentQRCode.QRCode}`}
+                    alt="QR Code"
+                    className="max-w-xs border border-gray-300 rounded-lg shadow-sm"
+                    onError={(e) => {
+                      console.error('QR Code image failed to load:', e);
+                      e.target.style.display = 'none';
+                    }}
+                    onLoad={() => console.log('QR Code image loaded successfully')}
+                  />
+                ) : (
+                  <div className="text-gray-500 p-4 border border-gray-300 rounded-lg">
+                    <p>No QR Code available</p>
+                    <p className="text-sm">QR Code data: {JSON.stringify(currentQRCode)}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col sm:flex-row justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadQRCode}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+                >
+                  <AiOutlineDownload size={16} />
+                  Download QR Code
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowQRCodeModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </DynamicModal>
     </>

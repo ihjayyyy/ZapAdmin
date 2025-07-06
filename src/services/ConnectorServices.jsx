@@ -192,3 +192,25 @@ export const getConnectorByOperatorId = async (operatorId, token) => {
 
   return data;
 };
+
+/**
+ * Generate QR Code for connector
+ * @param {string} connectorId - ID of the connector
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} - QR Code data
+ */
+export const generateConnectorQRCode = async (connectorId, token) => {
+  const response = await fetch(`${apiUrl}Connector/GenerateQRCode/${connectorId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to generate QR code');
+  }
+
+  return data;
+};
