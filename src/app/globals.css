@@ -52,3 +52,83 @@
     @apply max-w-[120px] sm:max-w-[150px] md:max-w-[200px] truncate;
   }
 }
+
+/* Print styles */
+@media print {
+  /* Hide navigation, sidebar, and interactive elements */
+  nav,
+  .sidebar,
+  [data-sidebar],
+  [role="navigation"],
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Hide Sidebar and TopBar components specifically */
+  main.grid {
+    display: block !important;
+    grid-template-columns: none !important;
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Target the main grid layout to show only content */
+  main.grid > *:first-child {
+    display: none !important; /* Hide Sidebar */
+  }
+  
+  main.grid > div:last-child {
+    width: 100% !important;
+  }
+  
+  main.grid > div:last-child > div {
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+  
+  /* Hide TopBar specifically */
+  main.grid > div:last-child > div > *:first-child {
+    display: none !important;
+  }
+  
+  /* Reset page margins */
+  @page {
+    margin: 0.5in;
+  }
+  
+  /* Ensure report content uses full width */
+  .report-content {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Ensure table prints properly */
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tfoot {
+    display: table-footer-group;
+  }
+  
+  /* Ensure proper page breaks */
+  .summary-grid {
+    page-break-inside: avoid;
+  }
+}
