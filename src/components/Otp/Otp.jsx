@@ -40,6 +40,9 @@ function Otp() {
       }
     }
   }, [mounted, router]);
+// Otp component handles One-Time Password verification for user accounts.
+// It is triggered after login for unverified users and manages OTP input, resend, and validation.
+// Used on the /otp page to confirm user identity before granting access.
 
   useEffect(() => {
     if (countdown > 0) {

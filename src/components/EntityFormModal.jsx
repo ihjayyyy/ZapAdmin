@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 import DynamicModal from './DynamicModal';
+/**
+ * EntityFormModal Component
+ * ------------------------
+ * Modal dialog for creating or editing entities (records).
+ * Displays a form with fields and handles submission, validation, and closing.
+ *
+ * Example usage:
+ * import EntityFormModal from '@/components/EntityFormModal';
+ *
+ * <EntityFormModal isOpen={isOpen} onClose={closeModal} entity={entity} onSave={saveEntity} />
+ */
 
 /**
  * Generic form modal component for creating/editing/viewing any entity

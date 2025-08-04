@@ -1,4 +1,15 @@
 import React from 'react';
+/**
+ * StatusChip Component
+ * --------------------
+ * Displays a colored label or chip representing the status of an entity (e.g., active, pending, error).
+ * Used in tables, cards, and detail views to visually indicate status.
+ *
+ * Example usage:
+ * import StatusChip from '@/components/StatusChip';
+ *
+ * <StatusChip status="active" />
+ */
 import { FiCheckCircle, FiXCircle, FiAlertCircle, FiHelpCircle, FiClock, FiPlay, FiPause } from 'react-icons/fi';
 
 const statusMapping = {

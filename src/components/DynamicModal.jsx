@@ -1,6 +1,19 @@
 import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 
+/**
+ * DynamicModal Component
+ * ---------------------
+ * Reusable modal dialog component for forms, confirmations, and details.
+ * Supports custom titles, sizes, and content, and can be closed via a button.
+ *
+ * Example usage:
+ * import DynamicModal from '@/components/DynamicModal';
+ *
+ * <DynamicModal isOpen={isOpen} onClose={closeModal} title="Edit Entity">
+ *   <EntityForm />
+ * </DynamicModal>
+ */
 const DynamicModal = ({ 
   isOpen, 
   onClose, 

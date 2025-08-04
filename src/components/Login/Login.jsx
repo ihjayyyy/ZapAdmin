@@ -12,6 +12,24 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
   const [showUserTypeMessage, setShowUserTypeMessage] = useState(false);
+/**
+ * Login Component
+ * ----------------
+ * Handles user authentication via email and password.
+ * - Validates input fields
+ * - Displays errors and user type restrictions
+ * - Triggers OTP verification for unverified accounts
+ * - Uses AuthContext for login logic
+ *
+ * Example usage:
+ * import Login from '@/components/Login/Login';
+ *
+ * export default function LoginPage() {
+ *   return <Login />;
+ * }
+ *
+ * Typically used on the /login route/page.
+ */
   const router = useRouter();
   const { login, error: authError } = useAuth();
 
@@ -37,6 +55,9 @@ const Login = () => {
     setLocalError('');
     setShowUserTypeMessage(false);
 
+// Login component handles user authentication via email and password.
+// It validates input, displays errors, and triggers OTP verification for unverified accounts.
+// Used on the /login page for user sign-in.
     if (!validateEmail(email)) {
       setLocalError('Please enter a valid email address');
       return;

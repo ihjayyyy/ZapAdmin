@@ -72,7 +72,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDownloadOptions(!showDownloadOptions)}
-              className="flex items-center gap-2 px-4 py-2 bg-deepblue-500 text-white rounded hover:bg-deepblue-700 transition-colors"
+              className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-deepblue-500 text-white rounded hover:bg-deepblue-700 transition-colors"
             >
               <FiDownload size={16} />
               Download
@@ -86,7 +86,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
                     onDownloadCSV();
                     setShowDownloadOptions(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
                 >
                   CSV Format
                 </button>
@@ -95,7 +95,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
                     onDownloadPDF();
                     setShowDownloadOptions(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
+                  className="cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
                 >
                   PDF Format
                 </button>
@@ -105,7 +105,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
           
           <button
             onClick={onPrint}
-            className="flex items-center gap-2 px-4 py-2 bg-turquoise-500 text-white rounded hover:bg-turquoise-700 transition-colors"
+            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-turquoise-500 text-white rounded hover:bg-turquoise-700 transition-colors"
           >
             <FiPrinter size={16} />
             Print

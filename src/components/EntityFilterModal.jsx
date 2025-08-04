@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 import DynamicModal from './DynamicModal';
+/**
+ * EntityFilterModal Component
+ * --------------------------
+ * Modal dialog for filtering entities in tables or lists.
+ * Allows users to select filter criteria and apply them to displayed data.
+ *
+ * Example usage:
+ * import EntityFilterModal from '@/components/EntityFilterModal';
+ *
+ * <EntityFilterModal isOpen={isFilterOpen} onClose={closeFilter} onApply={applyFilters} />
+ */
 
 /**
  * Generic filter modal for filtering any entity

@@ -1,9 +1,45 @@
+/**
+ * DynamicTable Component
+ *
+ * A reusable, feature-rich table component for displaying paginated, sortable, and searchable data in a Next.js/React app.
+ *
+ * Features:
+ * - Pagination, sorting, and page size selection
+ * - Search with debounce
+ * - Optional filter and add buttons
+ * - Bulk selection and delete support
+ * - Customizable columns and cell rendering
+ * - Loading indicator and empty state
+ * - Expandable rows via 'expandedContent' column
+ *
+ * Props:
+ * - title: string (Table title)
+ * - icon: React component (Table icon, default: FiDollarSign)
+ * - fetchData: async function({ page, pageSize, sortField, sortAscending, filter }) => { data, totalItems }
+ * - columns: array of column definitions ({ key, label, render?, className? })
+ * - initialPageSize: number (default page size)
+ * - onFilterClick: function (optional, opens filter modal)
+ * - hasActiveFilters: boolean (optional, highlights filter button)
+ * - onAddClick: function (optional, opens add modal)
+ * - onBulkDelete: function(selectedIds) (optional, enables bulk delete)
+ *
+ * Usage Example:
+ * <DynamicTable
+ *   title="Users"
+ *   icon={FiUser}
+ *   fetchData={fetchUsers}
+ *   columns={userColumns}
+ *   initialPageSize={10}
+ *   onFilterClick={openFilterModal}
+ *   hasActiveFilters={filtersApplied}
+ *   onAddClick={openAddUserModal}
+ *   onBulkDelete={handleBulkDelete}
+ * />
+ */
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { 
-  FiArrowUpRight, 
   FiDollarSign, 
-  FiMoreHorizontal, 
   FiChevronUp, 
   FiChevronDown, 
   FiSearch, 

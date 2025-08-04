@@ -4,6 +4,17 @@ import { AiOutlineLogout } from "react-icons/ai";
 import DynamicModal from './DynamicModal';
 
 function TopBar() {
+/**
+ * TopBar Component
+ * ----------------
+ * Displays the header for each page, including greeting, user info, date/time, and logout functionality.
+ * Used in layout components to provide a consistent header across protected pages.
+ *
+ * Example usage:
+ * import TopBar from '@/components/TopBar';
+ *
+ * <TopBar />
+ */
   const { logout, user } = useAuth() // Get logout function and user from auth context
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date());

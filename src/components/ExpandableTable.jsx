@@ -6,6 +6,17 @@ import ActionButtons from './ActionButtons';
  * Reusable Expandable Table Component
  * Handles expandable rows with CRUD operations for related entities
  */
+/**
+ * ExpandableTable Component
+ * ------------------------
+ * Table component that supports expandable rows for showing additional details.
+ * Each row can be expanded to reveal nested content or sub-tables.
+ *
+ * Example usage:
+ * import ExpandableTable from '@/components/ExpandableTable';
+ *
+ * <ExpandableTable columns={columns} data={data} />
+ */
 
 // Expandable row button renderer
 export const createExpandButton = (expandedRows, onToggleExpand) => (_, item) => (
