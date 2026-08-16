@@ -77,14 +77,33 @@ export const renderChargingBayMaxPower = (maxPower) => maxPower ? (
 ) : <span className="text-gray-400">-</span>;
 
 export const renderChargingBayStatus = (status) => {
-  const statusMap = {
+  const numericStatusMap = {
     0: 'undefined',
-    1: 'available', 
+    1: 'available',
     2: 'occupied',
     3: 'unavailable',
     4: 'faulted'
   };
-  return <StatusChip status={statusMap[status] || 'undefined'} />;
+
+  if (typeof status === 'number') {
+    return <StatusChip status={numericStatusMap[status] || 'unknown'} />;
+  }
+
+  const normalized = status?.toString().toLowerCase().trim();
+  if (!normalized) {
+    return <StatusChip status="unknown" />;
+  }
+
+  if (normalized in numericStatusMap) {
+    return <StatusChip status={numericStatusMap[Number(normalized)]} />;
+  }
+
+  const aliasMap = {
+    active: 'available',
+    inactive: 'unavailable'
+  };
+
+  return <StatusChip status={aliasMap[normalized] || normalized} />;
 };
 
 // Render function for expanded charging bay content

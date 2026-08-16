@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiDownload, FiPrinter, FiChevronDown } from 'react-icons/fi';
+import StatusChip from '@/components/StatusChip';
 
 const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, onPrint }) => {
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
@@ -17,35 +18,28 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleString();
   };
 
-  const getStatusLabel = (status) => {
-    const statusMap = {
-      0: 'Pending',
-      1: 'In Progress', 
-      2: 'Completed',
-      3: 'Failed',
-      4: 'Cancelled'
-    };
-    return statusMap[status] || 'Unknown';
-  };
+  // Terminal statuses = session has actually finished (Faulted or Completed)
+  const isTerminalStatus = (status) => status === 8 || status === 9;
 
   const calculateDuration = (startDate, endDate) => {
     if (!startDate || !endDate) return '-';
-    
+
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const diffMs = end - start;
-      
+
       if (diffMs < 0) return '-';
-      
+
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      
+
       if (hours > 0) {
         return `${hours}h ${minutes}m`;
       } else {
@@ -58,10 +52,11 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
 
   const totalEnergy = data.reduce((sum, session) => sum + (session.kilowatt || 0), 0);
   const totalAmount = data.reduce((sum, session) => sum + (session.amount || 0), 0);
-  const completedSessions = data.filter(session => session.chargingStatus === 2).length;
+  // Status 9 = Completed (matches system-wide status codes in StatusChip)
+  const completedSessions = data.filter(session => session.chargingStatus === 9).length;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm report-content">{/* Added report-content class */}
+    <div className="bg-white p-6 rounded-lg shadow-sm report-content">
       {/* Header */}
       <div className="flex justify-between items-center mb-6 print:mb-4">
         <div>
@@ -78,7 +73,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
               Download
               <FiChevronDown size={14} className={`transition-transform ${showDownloadOptions ? 'rotate-180' : ''}`} />
             </button>
-            
+
             {showDownloadOptions && (
               <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
                 <button
@@ -102,7 +97,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
               </div>
             )}
           </div>
-          
+
           <button
             onClick={onPrint}
             className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-turquoise-500 text-white rounded hover:bg-turquoise-700 transition-colors"
@@ -129,7 +124,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
         </div>
         <div className="bg-purple-50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-purple-600">Total Revenue</h3>
-          <p className="text-2xl font-bold text-purple-800">${totalAmount.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-purple-800">₱{totalAmount.toFixed(2)}</p>
         </div>
       </div>
 
@@ -155,6 +150,7 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
           <thead>
             <tr className="bg-deepblue-100">
               <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-deepblue-800">ID</th>
+              <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-deepblue-800">Operator</th>
               <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-deepblue-800">Station</th>
               <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-deepblue-800">Vehicle</th>
               <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-deepblue-800">Start Time</th>
@@ -169,23 +165,22 @@ const ChargingSessionsReport = ({ data, filters, onDownloadCSV, onDownloadPDF, o
             {data.map((session, index) => (
               <tr key={session.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="border border-gray-300 px-3 py-2 text-sm">{session.id}</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm">{session.operatorName || '-'}</td>
                 <td className="border border-gray-300 px-3 py-2 text-sm">{session.stationName || '-'}</td>
                 <td className="border border-gray-300 px-3 py-2 text-sm">{session.vehicleName || '-'}</td>
                 <td className="border border-gray-300 px-3 py-2 text-sm">{formatDate(session.chargingStart)}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm">{formatDate(session.chargingEnd)}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm">{calculateDuration(session.chargingStart, session.chargingEnd)}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm">{session.kilowatt || 0}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm">${(session.amount || 0).toFixed(2)}</td>
                 <td className="border border-gray-300 px-3 py-2 text-sm">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    session.chargingStatus === 2 ? 'bg-green-100 text-green-800' :
-                    session.chargingStatus === 1 ? 'bg-blue-100 text-blue-800' :
-                    session.chargingStatus === 3 ? 'bg-red-100 text-red-800' :
-                    session.chargingStatus === 4 ? 'bg-gray-100 text-gray-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {getStatusLabel(session.chargingStatus)}
-                  </span>
+                  {isTerminalStatus(session.chargingStatus) ? formatDate(session.chargingEnd) : '-'}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-sm">
+                  {isTerminalStatus(session.chargingStatus)
+                    ? calculateDuration(session.chargingStart, session.chargingEnd)
+                    : '-'}
+                </td>
+                <td className="border border-gray-300 px-3 py-2 text-sm">{session.kilowatt || 0}</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm">₱{(session.amount || 0).toFixed(2)}</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm">
+                  <StatusChip status={session.chargingStatus} />
                 </td>
               </tr>
             ))}

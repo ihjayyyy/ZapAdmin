@@ -1,5 +1,6 @@
 export const chargingColumns = (renderActions, renderStatus, renderDate, renderSessionDetails) => [
     {key: 'id', label: 'ID'},
+    {key: 'operatorName', label: 'Operator'},
     {key: 'stationName', label: 'Station Name'},
     {key:'vehicleName', label: 'Vehicle Name'},
     {key:'connector', label: 'Connector Type'},
@@ -11,6 +12,7 @@ export const chargingColumns = (renderActions, renderStatus, renderDate, renderS
 
 export const chargingSessionsFormFields = [
     {name: 'id', label: 'ID', type: 'text', disabled: true, gridGroup: 'basic'},
+    {name: 'operatorName', label: 'Operator', type: 'text', disabled: true, gridGroup: 'basic'},
     {name: 'stationName', label: 'Station Name', type: 'text', disabled: true, gridGroup: 'basic'},
     {name: 'stationAddress', label: 'Station Address', type: 'text', disabled: true, gridGroup: 'basic'},
     {name: 'vehicleName', label: 'Vehicle Name', type: 'text', disabled: true, gridGroup: 'basic'},

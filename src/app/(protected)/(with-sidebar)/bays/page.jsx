@@ -10,7 +10,7 @@ import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
 import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
 import { bayColumns, bayFilterOptions, bayFormFields, bayConnectorConfig } from "./bayConfig";
-import { renderStation, renderActions, renderStatus } from "./bayRenderers";
+import { renderActions } from "./bayRenderers";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { validateBayForm } from "./bayValidation";
 import { useAuth } from "@/context/AuthContext";
@@ -47,9 +47,10 @@ function ChargingBaysPage() {
     handleToggleExpand: baseHandleToggleExpand,
     handlePageChange,
     refreshRelatedData
-  } = useExpandableTable((bayId, page, pageSize) => {
+  } = useExpandableTable((bayId, page, pageSize, bay) => {
+    const chargeBayId = bay?.chargeBayId ?? bayId;
     const pagingData = {
-      filter: [`chargeBayId eq ${bayId}`],
+      filter: [`chargeBayId=${chargeBayId}`],
       page: page,
       pagesize: pageSize,
       sortField: 'id',
@@ -91,7 +92,7 @@ function ChargingBaysPage() {
 
   const handleAddBay =() =>{
     setCurrentBay({
-      stationI: '',
+      stationId: '',
       code:'',
       maxPower:0,
       stationKey:'',
@@ -261,8 +262,6 @@ function ChargingBaysPage() {
   }, [token, filters, buildFilterString,refreshTrigger]);
 
   const columns = bayColumns(
-    (stationId) => renderStation(stationId, stations),
-    renderStatus,
     (_, item) => renderActions(_, item, handleViewBay, handleEditBay, handleDeleteConfirmation, expandedRows, handleToggleExpand),
     (_, item) => createExpandedContent(bayConnectorConfig)(
       _, 

@@ -24,7 +24,7 @@ import {
 } from '@/services/RateBreakdownServices';
 import { rateColumns, rateFilterOptions, rateFormFields, rateBreakdownConfig } from './rateConfig';
 import { validateRateForm } from './rateValidation';
-import { renderConnector, renderStatus, renderActions } from './rateRenderers';
+import { renderStatus, renderActions } from './rateRenderers';
 import { rateBreakdownFormFields, rateTypeOptions } from '../rateBreakdowns/rateBreakdownConfig';
 import { validateRateBreakdownForm } from '../rateBreakdowns/rateBreakdownValidation';
 import { useExpandableTable, createExpandedContent } from '@/components/ExpandableTable';
@@ -73,7 +73,7 @@ function RatePage() {
     }
   };
 
-  // Fetch all connectors to map IDs to names
+  // Fetch all connectors to populate the connector dropdown (form + filter)
   useEffect(() => {
     const loadConnectors = async () => {
       try {
@@ -83,9 +83,9 @@ function RatePage() {
         const connectorMap = {};
         const options = [];
         connectorData.forEach(connector => {
-          connectorMap[connector.id] = connector.connectorType;
+          connectorMap[connector.id] = connector.connectorName;
           // Store connectorId as number, not string
-          options.push({ value: connector.id, label: connector.connectorType });
+          options.push({ value: connector.id, label: connector.connectorName });
         });
         setConnectors(connectorMap);
         setConnectorOptions(options);
@@ -244,7 +244,6 @@ function RatePage() {
   }, [token, filters, buildFilterString, refreshTrigger]);
 
   const columns = rateColumns(
-    (connectorId) => renderConnector(connectorId, connectors),
     renderStatus,
     (_, item) => renderActions(_, item, handleViewRate, handleEditRate, handleDeleteConfirmation, handleToggleStatus, expandedRows, handleToggleExpand),
     (_, item) => createExpandedContent(rateBreakdownConfig)(

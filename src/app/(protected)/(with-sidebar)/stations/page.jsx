@@ -313,19 +313,40 @@ function StationPage() {
   };
 
   const handleViewBay = (bay) => {
+    setSelectedStationForBay(null);
     setCurrentBay(bay);
     setShowBayViewModal(true);
   };
 
   const handleEditBay = (bay) => {
+    setSelectedStationForBay(null);
     setCurrentBay(bay);
     setShowBayFormModal(true);
   };
 
   const handleDeleteBay = (bay) => {
+    setSelectedStationForBay(null);
     setCurrentBay(bay);
     setShowBayDeleteModal(true);
   };
+
+  const bayStationOptions = selectedStationForBay?.id
+    ? [{ id: selectedStationForBay.id, name: selectedStationForBay.name || `Station ${selectedStationForBay.id}` }]
+    : currentBay?.stationId
+      ? [{ id: currentBay.stationId, name: `Station ${currentBay.stationId}` }]
+      : [];
+
+  const bayFormFieldsForModal = selectedStationForBay?.id && !currentBay?.id
+    ? bayFormFields.map(field =>
+        field.name === 'stationId'
+          ? {
+              ...field,
+              disabled: true,
+              disabledMessage: 'Station is preselected from the parent station row.'
+            }
+          : field
+      )
+    : bayFormFields;
 
   const handleBayFormSubmit = async (formData) => {
     try {
@@ -491,9 +512,13 @@ function StationPage() {
       {showBayFormModal && (
         <EntityFormModal
           entity={currentBay}
-          formFields={bayFormFields}
+          formFields={bayFormFieldsForModal}
+          dropdownOptions={{ stationId: bayStationOptions }}
           onSubmit={handleBayFormSubmit}
-          onClose={() => setShowBayFormModal(false)}
+          onClose={() => {
+            setShowBayFormModal(false);
+            setSelectedStationForBay(null);
+          }}
           validateForm={validateBayForm}
           entityName="Charging Bay"
         />

@@ -1,14 +1,36 @@
 import React from 'react';
-import { FiAlertCircle, FiCheckCircle, FiClock, FiHelpCircle, FiXCircle, FiEye, FiEdit, FiTrash2, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import {FiEye, FiEdit, FiTrash2, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import ActionButtons from '@/components/ActionButtons';
 import StatusChip from '@/components/StatusChip';
 
-export const renderStation = (stationId, stations) =>{
-    return stations[stationId] || `Unknown (ID: ${stationId})`
-}
-
 export const renderStatus = (chargingStatus) => {
-  return <StatusChip status={chargingStatus} />;
+  const numericStatusMap = {
+    0: 'undefined',
+    1: 'available',
+    2: 'occupied',
+    3: 'unavailable',
+    4: 'faulted'
+  };
+
+  if (typeof chargingStatus === 'number') {
+    return <StatusChip status={numericStatusMap[chargingStatus] || 'unknown'} />;
+  }
+
+  const normalized = chargingStatus?.toString().toLowerCase().trim();
+  if (!normalized) {
+    return <StatusChip status="unknown" />;
+  }
+
+  if (normalized in numericStatusMap) {
+    return <StatusChip status={numericStatusMap[Number(normalized)]} />;
+  }
+
+  const aliasMap = {
+    active: 'available',
+    inactive: 'unavailable'
+  };
+
+  return <StatusChip status={aliasMap[normalized] || normalized} />;
 };
 
 // Refactored actions renderer

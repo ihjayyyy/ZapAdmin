@@ -11,23 +11,24 @@ import {
 } from './rateRenderers';
 
 // Table columns definition
-export const rateColumns = (renderConnector, renderStatus, renderActions, renderExpandedContent) => [
+export const rateColumns = (renderStatus, renderActions, renderExpandedContent) => [
   { key: 'id', label: 'ID' },
+  { key: 'operatorName', label: 'Operator' },
+
   { key: 'name', label: 'Name', className: 'max-column-width' },
   { 
-    key: 'connectorId', 
+    key: 'connectorName', 
     label: 'Connector',
-    render: renderConnector
   },
   {
     key: 'additionalFee',
     label: 'Additional Fee',
-    render: (value) => `$${Number(value || 0).toFixed(2)}`
+    render: (value) => `₱${Number(value || 0).toFixed(2)}`
   },
   {
     key: 'rateKWH',
     label: 'Rate/kWh',
-    render: (value) => `$${Number(value || 0).toFixed(2)}`
+    render: (value) => `₱${Number(value || 0).toFixed(2)}`
   },
   {
     key: 'status',

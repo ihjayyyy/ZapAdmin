@@ -11,12 +11,12 @@ export const renderConnector = (connectorId, connectors) => {
 
 // Custom renderer for additional fee
 export const renderAdditionalFee = (fee) => {
-  return `$${Number(fee || 0).toFixed(2)}`;
+  return `₱${Number(fee || 0).toFixed(2)}`;
 };
 
 // Custom renderer for rate per kWh
 export const renderRateKWH = (rate) => {
-  return `$${Number(rate || 0).toFixed(2)}/kWh`;
+  return `₱${Number(rate || 0).toFixed(2)}/kWh`;
 };
 
 // Custom renderer for status

@@ -233,6 +233,7 @@ export const useExpandableTable = (fetchRelatedData, initialPageSize = 3) => {
   const [loadingItems, setLoadingItems] = useState(new Set());
   const [pagination, setPagination] = useState({});
   const [currentPages, setCurrentPages] = useState({});
+  const [parentItems, setParentItems] = useState({});
 
   const handleToggleExpand = async (item) => {
     const newExpandedRows = new Set(expandedRows);
@@ -245,17 +246,22 @@ export const useExpandableTable = (fetchRelatedData, initialPageSize = 3) => {
       // Expand - fetch related data if not already loaded
       newExpandedRows.add(item.id);
       setExpandedRows(newExpandedRows);
+      setParentItems(prev => ({
+        ...prev,
+        [item.id]: item
+      }));
       
       if (!relatedData[item.id] && fetchRelatedData) {
-        await loadPage(item.id, 1);
+        await loadPage(item.id, 1, item);
       }
     }
   };
 
-  const loadPage = async (parentId, page) => {
+  const loadPage = async (parentId, page, parentItem) => {
     setLoadingItems(prev => new Set([...prev, parentId]));
     try {
-      const result = await fetchRelatedData(parentId, page, initialPageSize);
+      const resolvedParentItem = parentItem || parentItems[parentId];
+      const result = await fetchRelatedData(parentId, page, initialPageSize, resolvedParentItem);
       
       // Handle different response formats
       const data = result.data || result.result || [];
@@ -298,13 +304,13 @@ export const useExpandableTable = (fetchRelatedData, initialPageSize = 3) => {
   };
 
   const handlePageChange = async (parentId, newPage) => {
-    await loadPage(parentId, newPage);
+    await loadPage(parentId, newPage, parentItems[parentId]);
   };
 
   const refreshRelatedData = async (parentId) => {
     if (fetchRelatedData && relatedData[parentId]) {
       const currentPage = currentPages[parentId] || 1;
-      await loadPage(parentId, currentPage);
+      await loadPage(parentId, currentPage, parentItems[parentId]);
     }
   };
 

@@ -6,7 +6,8 @@
 // Table columns definition
 export const connectorColumns = (renderActions, renderPrice, renderStatus, renderQRCode) => [
   { key: 'id', label: 'ID' },
-  { key: 'chargeBayId', label: 'Bay ID' },
+  { key: 'operatorName', label: 'Operator' },
+  { key: 'bayName', label: 'Bay Name' },
   { key: 'connectorType', label: 'Connector Type' },
   { key: 'connectorName', label: 'Connector Name' },
   { 

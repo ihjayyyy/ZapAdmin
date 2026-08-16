@@ -41,7 +41,7 @@ export const renderSessionDetails = (_, row) => {
             </div>
             {row.amount > 0 && (
                 <div className="text-xs font-medium text-green-600">
-                    ${row.amount.toFixed(2)}
+                    ₱{row.amount.toFixed(2)}
                 </div>
             )}
         </div>

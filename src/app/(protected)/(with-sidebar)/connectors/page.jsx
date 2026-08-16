@@ -286,7 +286,7 @@ function ConnectorsPage() {
           <div className="mb-4 p-3 bg-gray-50 rounded">
             <p className="text-sm"><strong>Bay ID:</strong> {currentConnector?.chargingBayId}</p>
             <p className="text-sm"><strong>Type:</strong> {currentConnector?.connectorType}</p>
-            <p className="text-sm"><strong>Price:</strong> ${parseFloat(currentConnector?.price || 0).toFixed(2)}</p>
+            <p className="text-sm"><strong>Price:</strong> ₱{parseFloat(currentConnector?.price || 0).toFixed(2)}</p>
           </div>
           <p className="mb-6 text-sm text-red-600">This action cannot be undone.</p>
           

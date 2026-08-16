@@ -1,4 +1,5 @@
 import { 
+  renderStatus,
   renderConnectorType,
   renderConnectorName,
   renderConnectorPrice, 
@@ -6,10 +7,11 @@ import {
   renderConnectorItem 
 } from './bayRenderers';
 
-export const bayColumns = (renderStation, renderStatus, renderActions, renderExpandedContent)=>[
+export const bayColumns = ( renderActions, renderExpandedContent)=>[
     {key: 'id', label: 'ID'},
-    {key: 'stationId', label: 'Station', render: renderStation},
-    {key: 'code', label: 'Code'},
+    {key: 'operatorName', label: 'Operator'},
+    {key: 'stationName', label: 'Station'},
+    {key: 'code', label: 'Bay'},
     {key: 'stationKey', label: 'Station Key'},
     {key: 'maxPower', label:'Max Power'},
     {key: 'status', label:'Status', render:renderStatus},
