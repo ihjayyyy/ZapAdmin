@@ -14,10 +14,12 @@ import { renderActions } from "./bayRenderers";
 import { MdOutlineElectricCar } from "react-icons/md";
 import { validateBayForm } from "./bayValidation";
 import { useAuth } from "@/context/AuthContext";
+import { useOperatorFilter } from "@/context/OperatorFilterContext";
 
 function ChargingBaysPage() {
   const token = localStorage.getItem('token');
   const { user } = useAuth(); 
+  const { selectedOperatorId } = useOperatorFilter();
   const [stations, setStations]=useState({});
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -213,9 +215,6 @@ function ChargingBaysPage() {
     }
   };
 
-  const isOperator = user?.userType === 2;
-  const operatorId = localStorage.getItem('operatorId');
-
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
     
@@ -227,14 +226,14 @@ function ChargingBaysPage() {
       filterArray.push(`status=${additionalFilters.status}`);
     }
 
-    if (isOperator && operatorId) {
-      if (!filterArray.some(f => f.startsWith("operatorId="))) {
-        filterArray.push(`operatorId=${operatorId}`);
-      }
+    // Fall back to the global operator filter (topbar) only if the page-level
+    // filter modal didn't already specify an operator - that takes precedence.
+    if (selectedOperatorId && !filterArray.some(f => f.startsWith("operatorId="))) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
     }
     
     return filterArray;
-  }, []);
+  }, [selectedOperatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -259,7 +258,7 @@ function ChargingBaysPage() {
         totalItems: 0
       };
     }
-  }, [token, filters, buildFilterString,refreshTrigger]);
+  }, [token, filters, buildFilterString, refreshTrigger, selectedOperatorId]);
 
   const columns = bayColumns(
     (_, item) => renderActions(_, item, handleViewBay, handleEditBay, handleDeleteConfirmation, expandedRows, handleToggleExpand),

@@ -51,6 +51,29 @@ export const getAllOperators = async (token) => {
 };
 
 /**
+ * Get operator dropdown options for filtering.
+ * Returns every operator for super admins, and only the operators the
+ * current user is linked to (via UserOperator) for everyone else.
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array<{id: number, name: string}>>} - List of operator options
+ */
+export const getOperatorDropdownOptions = async (token) => {
+  const response = await fetch(`${apiUrl}Operator/DropdownOptions`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch operator dropdown options');
+  }
+
+  return data;
+};
+
+/**
  * Get operator by ID
  * @param {string} operatorId - ID of the operator
  * @param {string} token - Authentication token

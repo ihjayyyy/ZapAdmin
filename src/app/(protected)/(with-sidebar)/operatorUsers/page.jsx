@@ -1,99 +1,124 @@
 'use client';
 import React, { useState, useEffect, useCallback } from "react";
 import { toast } from 'react-toastify';
-import { 
-  getAllUserOperators, 
-  createUserOperator, 
-  updateUserOperator, 
-  deleteUserOperator 
+import {
+  getPagedUserOperators,
+  createUserOperator,
+  updateUserOperator,
+  deleteUserOperator,
+  getUserOperatorRoles
 } from '@/services/UserOperatorServices';
-import { getAllOperators } from '@/services/OperatorServices';
-import { getPagedUsers } from '@/services/UserServices'; // Add this import
+import { getPagedUsers } from '@/services/UserServices';
 import DynamicTable from "@/components/DynamicTable";
+import EntityFilterModal from "@/components/EntityFilterModal";
 import EntityFormModal from "@/components/EntityFormModal";
 import DynamicModal from "@/components/DynamicModal";
-import { operatorUserColumns, operatorUserFormFields } from "./operatorUserConfig";
-import { renderActions, renderOperator, renderUser } from './operatorUserRenderers'; // Add renderUser
+import { operatorUserColumns, operatorUserFormFields, operatorUserFilterOptions } from "./operatorUserConfig";
+import { renderActions, renderRole } from './operatorUserRenderers';
 import { validateUserOperatorForm } from "./operatorUserValidation";
 import { BsPeople } from "react-icons/bs";
+import { useOperatorFilter } from "@/context/OperatorFilterContext";
 
 function OperatorUsersPage() {
   const token = localStorage.getItem('token');
-  const [operators, setOperators] = useState({});
-  const [users, setUsers] = useState({}); // Add users state
-  const [operatorOptions, setOperatorOptions] = useState([]);
-  const [userOptions, setUserOptions] = useState([]); // Add user options state
+  const { operatorOptions, selectedOperatorId } = useOperatorFilter();
+  const [userOptions, setUserOptions] = useState([]);
+  const [roleOptions, setRoleOptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentOperatorUser, setCurrentOperatorUser] = useState(null);
+  const [filters, setFilters] = useState({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Fetch all operators
   useEffect(() => {
-    const fetchOperators = async () => {
-      try {
-        const data = await getAllOperators(token);
-        const operatorMap = data.reduce((acc, operator) => {
-          acc[operator.id] = operator;
-          return acc;
-        }, {});
-        setOperators(operatorMap);
-        setOperatorOptions(data.map((operator) => ({ id: operator.id, name: operator.name })));
-      } catch (err) {
-        toast.error(err.message || 'Failed to load operators');
-      }
-    };
+    setLoading(false);
+  }, []);
 
-    fetchOperators();
-  }, [token]);
-
-  // Fetch users with userType = 2
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const pagingData = {
-          filter: ["userType=2"], // Filter for userType = 2
+          filter: ["userType=2"],
           page: 1,
-          pagesize: 1000, // Get a large number to get all users of type 2
+          pagesize: 1000,
           sortField: "userName",
           sortAscending: true
         };
-        
         const response = await getPagedUsers(pagingData, token);
-        const userData = response.result || []; // Use 'result' based on your API structure
-        
-        const userMap = userData.reduce((acc, user) => {
-          acc[user.userId] = user; // Use 'userId' as the key
-          return acc;
-        }, {});
-        
-        setUsers(userMap);
-        setUserOptions(userData.map((user) => ({ 
-          id: user.userId, // Use 'userId' as the id
-          name: `${user.firstName} ${user.lastName}` || `User ${user.userId}` 
+        const userData = response.result || [];
+        setUserOptions(userData.map((user) => ({
+          id: user.userId,
+          name: `${user.firstName} ${user.lastName}` || `User ${user.userId}`
         })));
       } catch (err) {
         toast.error(err.message || 'Failed to load users');
       }
     };
-
     fetchUsers();
   }, [token]);
 
-  // Fetch operator users
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const data = await getUserOperatorRoles(token);
+        setRoleOptions(data.map((role) => ({ id: role.value, name: role.label })));
+      } catch (err) {
+        toast.error(err.message || 'Failed to load roles');
+      }
+    };
+    fetchRoles();
+  }, [token]);
+
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    setShowFilterModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setShowFilterModal(false);
+  };
+
+  const buildFilterString = useCallback((baseFilters, additionalFilters) => {
+    const filterArray = [...(baseFilters || [])];
+
+    if (additionalFilters.userOperatorRole !== undefined && additionalFilters.userOperatorRole !== '') {
+      filterArray.push(`userOperatorRole=${additionalFilters.userOperatorRole}`);
+    }
+
+    // Operator scoping now comes solely from the global topbar filter
+    if (selectedOperatorId) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
+    }
+
+    return filterArray;
+  }, [selectedOperatorId]);
+
+  const fetchData = useCallback(async (pagingParams) => {
     try {
-      const data = await getAllUserOperators(token);
-      return { data, totalItems: data.length };
+      const pagingData = {
+        page: pagingParams.page,
+        pagesize: pagingParams.pageSize,
+        sortField: pagingParams.sortField || 'id',
+        sortAscending: pagingParams.sortAscending,
+        filter: buildFilterString(pagingParams.filter, filters)
+      };
+
+      const response = await getPagedUserOperators(pagingData, token);
+
+      return {
+        data: response.result || [],
+        totalItems: response.Pagination?.length || 0
+      };
     } catch (err) {
       toast.error(err.message || 'Failed to load operator users');
       return { data: [], totalItems: 0 };
     }
-  }, [token, refreshTrigger]);
+  }, [token, filters, buildFilterString, refreshTrigger, selectedOperatorId]);
 
-  // Handle form submission
   const handleFormSubmit = async (formData) => {
     try {
       if (!validateUserOperatorForm(formData, toast.error)) return;
@@ -114,7 +139,6 @@ function OperatorUsersPage() {
     }
   };
 
-  // Handle delete
   const handleDeleteOperatorUser = async () => {
     try {
       await deleteUserOperator(currentOperatorUser.id, token);
@@ -126,9 +150,8 @@ function OperatorUsersPage() {
     }
   };
 
-  // Handle add/edit
   const handleAdd = () => {
-    setCurrentOperatorUser({ userId: '', operatorId: '', role: '' });
+    setCurrentOperatorUser({ userId: '', operatorId: selectedOperatorId || '', userOperatorRole: '' });
     setShowFormModal(true);
   };
 
@@ -137,25 +160,19 @@ function OperatorUsersPage() {
     setShowFormModal(true);
   };
 
-  // Handle viewing operator user details
   const handleView = (item) => {
     setCurrentOperatorUser(item);
     setShowViewModal(true);
   };
 
-  // Handle delete confirmation
   const handleDeleteConfirmation = (item) => {
     setCurrentOperatorUser(item);
     setShowDeleteModal(true);
   };
 
-  // Table columns - updated to include user rendering
   const columns = operatorUserColumns(
-    renderOperator,
-    renderUser, // Add renderUser function
-    (_, item) => renderActions(_, item, handleView, handleEdit, handleDeleteConfirmation),
-    operators,
-    users // Pass users to columns
+    renderRole,
+    (_, item) => renderActions(_, item, handleView, handleEdit, handleDeleteConfirmation)
   );
 
   const customTableProps = {
@@ -164,24 +181,34 @@ function OperatorUsersPage() {
     fetchData,
     columns,
     initialPageSize: 10,
+    onFilterClick: () => setShowFilterModal(true),
+    hasActiveFilters: Object.keys(filters).length > 0,
     onAddClick: handleAdd
   };
 
   return (
     <>
       <DynamicTable {...customTableProps} />
-      
+
+      {/* Filter Modal - operator filtering removed, handled globally */}
+      <EntityFilterModal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        filterOptions={operatorUserFilterOptions(roleOptions)}
+        currentFilters={filters}
+        onApplyFilters={handleApplyFilters}
+        onClearFilters={handleClearFilters}
+        entityName="Operator Users"
+      />
+
       {/* Create/Edit Form Modal */}
       {showFormModal && (
         <EntityFormModal
           entity={currentOperatorUser}
           formFields={operatorUserFormFields.map((field) => {
-            if (field.name === 'operatorId') {
-              return { ...field, options: operatorOptions };
-            }
-            if (field.name === 'userId') {
-              return { ...field, options: userOptions };
-            }
+            if (field.name === 'operatorId') return { ...field, options: operatorOptions };
+            if (field.name === 'userId') return { ...field, options: userOptions };
+            if (field.name === 'userOperatorRole') return { ...field, options: roleOptions };
             return field;
           })}
           onSubmit={handleFormSubmit}
@@ -195,12 +222,9 @@ function OperatorUsersPage() {
         <EntityFormModal
           entity={currentOperatorUser}
           formFields={operatorUserFormFields.map((field) => {
-            if (field.name === 'operatorId') {
-              return { ...field, options: operatorOptions };
-            }
-            if (field.name === 'userId') {
-              return { ...field, options: userOptions };
-            }
+            if (field.name === 'operatorId') return { ...field, options: operatorOptions };
+            if (field.name === 'userId') return { ...field, options: userOptions };
+            if (field.name === 'userOperatorRole') return { ...field, options: roleOptions };
             return field;
           })}
           onClose={() => setShowViewModal(false)}

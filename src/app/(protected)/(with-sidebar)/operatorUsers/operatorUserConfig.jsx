@@ -1,33 +1,23 @@
-// Update columns to include user rendering
-export const operatorUserColumns = (renderOperator, renderUser, renderActions, operators, users) => [
+export const operatorUserColumns = (renderRole, renderActions) => [
   { key: 'id', label: 'ID' },
-  { key: 'userId', label: 'User', render: (userId) => renderUser(userId, users) },
-  { key: 'operatorId', label: 'Operator', render: (operatorId) => renderOperator(operatorId, operators) },
+  { key: 'userName', label: 'User' },
+  { key: 'operatorName', label: 'Operator' },
+  { key: 'userOperatorRoleName', label: 'Role', render: renderRole },
   { key: 'actions', label: 'Actions', render: renderActions }
 ];
 
 export const operatorUserFormFields = [
-  { 
-    name: 'userId', // Fixed the name to match the property
-    label: 'User', 
-    type: 'select',
-    required: true,
-    gridGroup: 'basic'
-  },
-  { 
-    name: 'operatorId', 
-    label: 'Operator', 
-    type: 'select',
-    required: true,
-    gridGroup: 'basic'
-  },
+  { name: 'userId', label: 'User', type: 'select', required: true, gridGroup: 'basic' },
+  { name: 'operatorId', label: 'Operator', type: 'select', required: true, gridGroup: 'basic' },
+  { name: 'userOperatorRole', label: 'Role', type: 'select', required: true, gridGroup: 'basic' },
 ];
 
-export const operatorUserFilterOptions = (operatorOptions) => [
+
+export const operatorUserFilterOptions = (roleOptions) => [
   {
     type: 'select',
-    name: 'operatorId',
-    label: 'Operator',
-    options: operatorOptions
+    name: 'userOperatorRole',
+    label: 'Role',
+    options: roleOptions
   },
 ];

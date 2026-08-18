@@ -90,13 +90,7 @@ export const stationFormFields = [
 ];
 
 // Filter options configuration for the modal
-export const stationFilterOptions = (operatorOptions) => [
-  {
-    type: 'select',
-    name: 'operatorId',
-    label: 'Operator',
-    options: operatorOptions
-  },
+export const stationFilterOptions = () => [
   {
     type: 'radio',
     name: 'active',

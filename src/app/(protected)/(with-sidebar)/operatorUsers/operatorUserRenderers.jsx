@@ -1,18 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
-import { FiEye, FiEdit, FiTrash2, } from 'react-icons/fi';
+import { FiEye, FiEdit, FiTrash2 } from 'react-icons/fi';
 
-export const renderOperator = (operatorId, operators) => {
-  return operators[operatorId]?.name || `Unknown (ID: ${operatorId})`;
-};
-
-// Add renderUser function
-export const renderUser = (userId, users) => {
-  const user = users[userId];
-  if (!user) return `Unknown (ID: ${userId})`;
-  
-  // Display userName, or fallback to firstName + lastName
-  return `${user.firstName} ${user.lastName}`.trim() || `User ${userId}`;
-};
+export const renderRole = (roleName) => roleName || 'Unknown';
 
 export const renderActions = (
   _, 

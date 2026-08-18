@@ -8,6 +8,7 @@ import DynamicModal from '@/components/DynamicModal';
 import EntityFilterModal from '@/components/EntityFilterModal';
 import EntityFormModal from '@/components/EntityFormModal';
 import { useAuth } from '@/context/AuthContext';
+import { useOperatorFilter } from '@/context/OperatorFilterContext';
 import { getAllConnectors } from '@/services/ConnectorServices';
 import { 
   createRate, 
@@ -32,6 +33,7 @@ import { useExpandableTable, createExpandedContent } from '@/components/Expandab
 function RatePage() {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
+  const { selectedOperatorId } = useOperatorFilter();
   const [connectors, setConnectors] = useState({});
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -193,9 +195,6 @@ function RatePage() {
     setShowFilterModal(false);
   };
 
-  const isOperator = user?.userType === 2;
-  const operatorId = localStorage.getItem('operatorId');
-
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     // Start with any existing filters
     const filterArray = [...(baseFilters || [])];
@@ -208,15 +207,14 @@ function RatePage() {
       filterArray.push(`status=${additionalFilters.status}`);
     }
 
-    if (isOperator && operatorId) {
-      // For operators, we need to filter rates by their connectors
-      if (!filterArray.some(f => f.startsWith("operatorId="))) {
-        filterArray.push(`operatorId=${operatorId}`);
-      }
+    // Fall back to the global operator filter (topbar) only if the page-level
+    // filter modal didn't already specify an operator - that takes precedence.
+    if (selectedOperatorId && !filterArray.some(f => f.startsWith("operatorId="))) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
     }
     
     return filterArray;
-  }, [isOperator, operatorId]);
+  }, [selectedOperatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -241,7 +239,7 @@ function RatePage() {
         totalItems: 0
       };
     }
-  }, [token, filters, buildFilterString, refreshTrigger]);
+  }, [token, filters, buildFilterString, refreshTrigger, selectedOperatorId]);
 
   const columns = rateColumns(
     renderStatus,

@@ -161,3 +161,48 @@ export const getUserOperatorsByOperator = async (operatorId, token) => {
 
   return data;
 };
+
+/**
+ * Get user operator role options (for dropdown)
+ * @param {string} token - Authentication token
+ * @returns {Promise<Array>} - List of { value, label } role options
+ */
+export const getUserOperatorRoles = async (token) => {
+  const response = await fetch(`${apiUrl}UserOperator/roles`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch user operator roles');
+  }
+
+  return data;
+};
+
+/**
+ * Get paged user operators (includes userName, operatorName, userOperatorRoleName)
+ * @param {Object} pagingData - { filter, page, pagesize, sortField, sortAscending }
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} - { result, totalCount } (adjust to match your actual paging envelope)
+ */
+export const getPagedUserOperators = async (pagingData, token) => {
+  const response = await fetch(`${apiUrl}UserOperator/paging`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(pagingData),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch paged user operators');
+  }
+
+  return data;
+};

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from 'react-toastify';
 import { 
   getPagedStations, 
@@ -8,7 +8,6 @@ import {
   deleteStation,
   toggleStationActivate,
 } from '../../../../services/StationServices';
-import { getAllOperators } from '../../../../services/OperatorServices';
 import { 
   getPagedChargingBays,
   createChargingBay,
@@ -27,11 +26,12 @@ import { bayFormFields } from '../bays/bayConfig';
 import { validateBayForm } from '../bays/bayValidation';
 import { BsEvStation } from "react-icons/bs";
 import { useAuth } from "@/context/AuthContext";
+import { useOperatorFilter } from "@/context/OperatorFilterContext";
 
 function StationPage() {
   const { user } = useAuth(); 
   const token = localStorage.getItem('token');
-  const [operators, setOperators] = useState({});
+  const { operatorOptions, selectedOperatorId } = useOperatorFilter();
   const [loading, setLoading] = useState(true);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -39,7 +39,6 @@ function StationPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentStation, setCurrentStation] = useState(null);
   const [filters, setFilters] = useState({});
-  const [operatorOptions, setOperatorOptions] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedStations, setSelectedStations] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -50,6 +49,18 @@ function StationPage() {
   const [showBayFormModal, setShowBayFormModal] = useState(false);
   const [showBayViewModal, setShowBayViewModal] = useState(false);
   const [showBayDeleteModal, setShowBayDeleteModal] = useState(false);
+
+  // Operator id -> name map, sourced from the global operator filter context
+  // (which already scopes operators to what this user can see)
+  const operators = useMemo(() => {
+    const map = {};
+    operatorOptions.forEach(op => { map[op.id] = op.name; });
+    return map;
+  }, [operatorOptions]);
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   // Expandable table functionality for charging bays
   const {
@@ -80,31 +91,6 @@ function StationPage() {
       toast.error(`Failed to load charging bays for ${station.name}: ${error.message}`);
     }
   };
-
-
-  // Fetch all operators to map IDs to names
-  useEffect(() => {
-    const loadOperators = async () => {
-      try {
-        const operatorData = await getAllOperators(token);
-        // Create a mapping of operator ID to operator name
-        const operatorMap = {};
-        const options = [];
-        operatorData.forEach(operator => {
-          operatorMap[operator.id] = operator.name;
-          options.push({ id: operator.id, name: operator.name });
-        });
-        setOperators(operatorMap);
-        setOperatorOptions(options);
-      } catch (error) {
-        toast.error(error.message || 'Failed to load operators');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOperators();
-  }, []);
 
   // Handle adding a new station
   const handleAddStation = () => {
@@ -205,14 +191,11 @@ function StationPage() {
     setShowFilterModal(false);
   };
 
-  const isOperator = user?.userType === 2;
-  const operatorId = localStorage.getItem('operatorId');
-
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     // Start with any existing filters
     const filterArray = [...(baseFilters || [])];
 
-    // Add filter from additionalFilters if provided
+    // Add filter from additionalFilters if provided (the page's own Filter modal)
     if (additionalFilters.operatorId) {
       filterArray.push(`operatorId=${additionalFilters.operatorId}`);
     }
@@ -220,14 +203,14 @@ function StationPage() {
       filterArray.push(`active=${additionalFilters.active}`);
     }
 
-    if (isOperator && operatorId) {
-      if (!filterArray.some(f => f.startsWith("operatorId="))) {
-        filterArray.push(`operatorId=${operatorId}`);
-      }
+    // Fall back to the global operator filter (topbar) only if the page-level
+    // filter modal didn't already specify one - that takes precedence.
+    if (selectedOperatorId && !filterArray.some(f => f.startsWith("operatorId="))) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
     }
     
     return filterArray;
-  }, [isOperator, operatorId]);
+  }, [selectedOperatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -252,7 +235,7 @@ function StationPage() {
         totalItems: 0
       };
     }
-  }, [token, filters, buildFilterString, refreshTrigger]); // Added refreshTrigger to dependencies
+  }, [token, filters, buildFilterString, refreshTrigger, selectedOperatorId]);
 
   const columns = stationColumns(
     (operatorId) => renderOperator(operatorId, operators), 
@@ -414,7 +397,7 @@ function StationPage() {
       <EntityFilterModal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
-        filterOptions={stationFilterOptions(operatorOptions)}
+        filterOptions={stationFilterOptions()}
         currentFilters={filters}
         onApplyFilters={handleApplyFilters}
         onClearFilters={handleClearFilters}

@@ -15,14 +15,14 @@ import DynamicModal from "@/components/DynamicModal";
 import { connectorColumns, connectorFormFields, connectorFilterOptions } from './connectorConfig';
 import { renderPrice, renderActions, renderStatus, renderQRCode } from './connectorRenderers';
 import { useAuth } from "@/context/AuthContext";
+import { useOperatorFilter } from "@/context/OperatorFilterContext";
 import { PiPlugChargingBold } from "react-icons/pi";
 import { AiOutlineDownload } from "react-icons/ai";
 
 
 function ConnectorsPage() {
   const token = localStorage.getItem('token');
-  const { user } = useAuth(); 
-  const [loading, setLoading] = useState(true);
+  const { selectedOperatorId } = useOperatorFilter();
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -176,9 +176,6 @@ function ConnectorsPage() {
     setFilters({});
   };
 
-  const isOperator = user?.userType === 2;
-  const operatorId = localStorage.getItem('operatorId');
-
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
     
@@ -194,14 +191,14 @@ function ConnectorsPage() {
       filterArray.push(`lastStatus=${additionalFilters.lastStatus}`);
     }
     
-    if (isOperator && operatorId) {
-      if (!filterArray.some(f => f.startsWith("operatorId="))) {
-        filterArray.push(`operatorId=${operatorId}`);
-      }
+    // Fall back to the global operator filter (topbar) only if the page-level
+    // filter modal didn't already specify an operator - that takes precedence.
+    if (selectedOperatorId && !filterArray.some(f => f.startsWith("operatorId="))) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
     }
     
     return filterArray;
-  }, []);
+  }, [selectedOperatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -226,7 +223,7 @@ function ConnectorsPage() {
         totalItems: 0
       };
     }
-  }, [token, filters, buildFilterString,refreshTrigger]);
+  }, [token, filters, buildFilterString, refreshTrigger, selectedOperatorId]);
 
   const columns = connectorColumns(
     (_, item) => renderActions(_, item, handleViewConnector, handleDeleteConfirmation, handleGenerateQRCode),

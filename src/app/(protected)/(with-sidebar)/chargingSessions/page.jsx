@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from 'react-toastify';
 import { getPagedCharging } from "@/services/ChargingSessions";
 import DynamicTable from "@/components/DynamicTable";
@@ -10,11 +10,13 @@ import { chargingColumns, chargingSessionsFilterOptions, chargingSessionsFormFie
 import { renderViewAction,renderDate,renderSessionDetails,renderStatus } from "./ChargingSessionsRenderers";
 import { BsBattery } from "react-icons/bs";
 import { FiTable, FiFileText } from "react-icons/fi";
+import { useOperatorFilter } from '@/context/OperatorFilterContext';
 import { useAuth } from "@/context/AuthContext";
 
 function ChargingSessionsPage() {
   const { user } = useAuth(); 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token')
+  const { selectedOperatorId } = useOperatorFilter();
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [currentSession, setCurrentSession] = useState(null);
@@ -36,9 +38,6 @@ function ChargingSessionsPage() {
     setFilters({});
     setShowFilterModal(false);
   }
-
-  const isOperator = user?.userType === 2;
-  const operatorId = localStorage.getItem('operatorId');
 
   const buildFilterString = useCallback((baseFilters, additionalFilters) => {
     const filterArray = [...(baseFilters || [])];
@@ -62,15 +61,14 @@ function ChargingSessionsPage() {
     if (additionalFilters.endDate) {
       filterArray.push(`chargingEnd<=${additionalFilters.endDate}`);
     }
-
-    if (isOperator && operatorId) {
-      if (!filterArray.some(f => f.startsWith("operatorId="))) {
-        filterArray.push(`operatorId=${operatorId}`);
-      }
-    }
     
+    // Fall back to the global operator filter (topbar) only if the page-level
+    // filter modal didn't already specify an operator - that takes precedence.
+    if (selectedOperatorId && !filterArray.some(f => f.startsWith("operatorId="))) {
+      filterArray.push(`operatorId=${selectedOperatorId}`);
+    }
     return filterArray;
-  }, []);
+  }, [selectedOperatorId]);
 
   const fetchData = useCallback(async (pagingParams) => {
     try {
@@ -95,7 +93,7 @@ function ChargingSessionsPage() {
         totalItems: 0
       };
     }
-  }, [token, filters, buildFilterString]);
+  }, [token, filters, buildFilterString, selectedOperatorId]);
 
   const fetchReportData = useCallback(async () => {
     try {
@@ -113,13 +111,22 @@ function ChargingSessionsPage() {
       toast.error(err.message || 'Failed to load report data');
       setReportData([]);
     }
-  }, [token, filters, buildFilterString]);
+  }, [token, filters, buildFilterString, selectedOperatorId]);
+
+  // Re-fetch report data whenever the operator filter or page filters change,
+  // but only while the report view is actually visible. This covers the case
+  // where the user switches the global operator filter (or applies a page-level
+  // filter) while already sitting on report view - previously nothing re-triggered
+  // fetchReportData in that scenario since it was only ever called from the
+  // view-toggle click handler.
+  useEffect(() => {
+    if (viewMode === 'report') {
+      fetchReportData();
+    }
+  }, [viewMode, fetchReportData]);
 
   const handleToggleView = (mode) => {
     setViewMode(mode);
-    if (mode === 'report') {
-      fetchReportData();
-    }
   };
 
   const handleDownloadReport = () => {

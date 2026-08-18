@@ -68,18 +68,12 @@ export const requestFormFields = [
   }
 ];
 
-export const requestFilterOptions = (operatorOptions, userOptions) => [
+export const requestFilterOptions = (userOptions) => [
   {
     type: 'select',
     name: 'requestedByUserId',
     label: 'Requested By User',
     options: userOptions
-  },
-  {
-    type: 'select',
-    name: 'operatorId',
-    label: 'Operator',
-    options: operatorOptions
   },
   {
     type: 'select',
