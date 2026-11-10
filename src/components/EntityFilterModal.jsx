@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DynamicModal from './DynamicModal';
+import SelectMenu from './SelectMenu';
 /**
  * EntityFilterModal Component
  * --------------------------
@@ -99,17 +100,13 @@ function EntityFilterModal({
             <label className="block text-gray-700 text-sm font-medium mb-2">
               {label}
             </label>
-            <select
+            <SelectMenu
               value={filters[name] !== undefined && filters[name] !== null ? String(filters[name]) : ''}
-              onChange={(e) => handleFilterChange(name, e.target.value)}
-              className="input"
-              aria-label={`Filter by ${label.toLowerCase()}`}
-            >
-              <option value="">{`All ${label}`}</option>
-              {options.map((option, index) => {
-                // Create a unique key by combining multiple possible identifiers
-                const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
-                
+              onChange={(value) => handleFilterChange(name, value)}
+              ariaLabel={`Filter by ${label.toLowerCase()}`}
+              options={[
+                { value: '', label: `All ${label}` },
+                ...options.map((option, index) => {
                 // FIX: More explicit value handling - prioritize 'value' property for form options
                 let optionValue;
                 if (option.hasOwnProperty('value')) {
@@ -124,13 +121,10 @@ function EntityFilterModal({
                 
                 const optionLabel = option.label || option.name || optionValue;
                 
-                return (
-                  <option key={uniqueKey} value={String(optionValue)}>
-                    {optionLabel}
-                  </option>
-                );
-              })}
-            </select>
+                return { value: String(optionValue), label: optionLabel };
+              })
+              ]}
+            />
           </div>
         );
         

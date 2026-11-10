@@ -1,5 +1,17 @@
 const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
 
+// Stations with a picture are sent as multipart/form-data; otherwise the request stays JSON.
+const toStationFormData = (fields, picture) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, value);
+    }
+  });
+  formData.append('picture', picture);
+  return formData;
+};
+
 /**
  * Create a new station
  * @param {Object} stationData - The station data
@@ -13,13 +25,15 @@ const apiUrl = process.env.NEXT_PUBLIC_APIURL || '';
  * @returns {Promise<Object>} - The created station data
  */
 export const createStation = async (stationData, token) => {
+  const { picture, ...fields } = stationData;
+  const useFormData = picture instanceof File;
   const response = await fetch(`${apiUrl}Station`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      ...(useFormData ? {} : { 'Content-Type': 'application/json' }),
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(stationData),
+    body: useFormData ? toStationFormData(fields, picture) : JSON.stringify(fields),
   });
 
   const data = await response.json();
@@ -81,14 +95,15 @@ export const getStationById = async (stationId, token) => {
  * @returns {Promise<Object>} - Updated station data
  */
 export const updateStation = async (stationId, stationData, token) => {
-  const { id:_id, active: _active, ...dataToSend } = stationData;
+  const { id:_id, active: _active, picture, ...dataToSend } = stationData;
+  const useFormData = picture instanceof File;
   const response = await fetch(`${apiUrl}Station/${stationId}`, {
     method: 'PUT',
     headers: {
-      'Content-Type': 'application/json',
+      ...(useFormData ? {} : { 'Content-Type': 'application/json' }),
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(dataToSend),
+    body: useFormData ? toStationFormData(dataToSend, picture) : JSON.stringify(dataToSend),
   });
 
   const data = await response.json();

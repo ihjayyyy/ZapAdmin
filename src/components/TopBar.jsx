@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useOperatorFilter, ALL_OPERATORS_VALUE } from '@/context/OperatorFilterContext'
 import { AiOutlineLogout } from "react-icons/ai";
 import DynamicModal from './DynamicModal';
+import SelectMenu from './SelectMenu';
 
 function TopBar() {
 /**
@@ -64,6 +65,10 @@ function TopBar() {
   // Show the dropdown once options have loaded and there's actually something to choose between
   // (a super admin always gets it, since they also have the "All Operators" choice)
   const showOperatorFilter = !loadingOperators && (isSuperAdmin || operatorOptions.length > 1);
+  const operatorSelectOptions = [
+    ...(isSuperAdmin ? [{ value: ALL_OPERATORS_VALUE, label: 'All Operators' }] : []),
+    ...operatorOptions.map((operator) => ({ value: String(operator.id), label: operator.name })),
+  ];
 
   return (
     <>
@@ -79,22 +84,16 @@ function TopBar() {
           <div className="flex items-center gap-3">
             {showOperatorFilter && (
               <div className="flex items-center gap-2">
-                <label htmlFor="global-operator-filter" className="text-xs font-medium text-stone-500 whitespace-nowrap">
+                <span className="text-xs font-medium text-stone-500 whitespace-nowrap">
                   Operator:
-                </label>
-                <select
-                  id="global-operator-filter"
+                </span>
+                <SelectMenu
                   value={selectedOperatorId}
-                  onChange={(e) => setSelectedOperatorId(e.target.value)}
-                  className="text-sm border border-stone-300 rounded-lg px-2 py-1.5 bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {isSuperAdmin && (
-                    <option value={ALL_OPERATORS_VALUE}>All Operators</option>
-                  )}
-                  {operatorOptions.map(op => (
-                    <option key={op.id} value={op.id}>{op.name}</option>
-                  ))}
-                </select>
+                  options={operatorSelectOptions}
+                  onChange={setSelectedOperatorId}
+                  ariaLabel="Operator"
+                  compact
+                />
               </div>
             )}
 

@@ -175,7 +175,7 @@ function DynamicTable({
   ] : columns;
 
   return (
-    <div className="col-span-12 p-4 mx-4 rounded border border-stone-300">
+    <div className="col-span-12 flex min-h-[calc(100vh-104px)] flex-col p-4 mx-4 rounded border border-stone-300">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <h3 className="flex items-center gap-1.5 font-medium">
@@ -228,8 +228,8 @@ function DynamicTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="overflow-y-auto border border-stone-200 rounded min-h-100 max-h-100" >
+      <div className="min-h-0 flex-1 overflow-x-auto">
+        <div className="h-full overflow-y-auto border border-stone-200 rounded" >
           <table className="w-full table-auto">
             <thead className="sticky top-0 z-10">
               <tr className="text-sm font-normal bg-deepblue-500 text-white">

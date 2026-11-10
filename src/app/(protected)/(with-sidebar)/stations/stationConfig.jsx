@@ -86,6 +86,13 @@ export const stationFormFields = [
     name: 'additionalInfo', 
     label: 'Additional Information', 
     type: 'textarea',
+  },
+  {
+    name: 'picture',
+    label: 'Station Image',
+    type: 'file',
+    accept: 'image/*',
+    currentValueField: 'imagePath',
   }
 ];
 

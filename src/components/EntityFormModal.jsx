@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DynamicModal from './DynamicModal';
+import SelectMenu from './SelectMenu';
 /**
  * EntityFormModal Component
  * ------------------------
@@ -130,18 +131,13 @@ function EntityFormModal({
                   {displayValue || 'Not specified'}
                 </div>
               ) : (
-                <select
-                  name={name}
+                <SelectMenu
                   value={currentEntity[name] !== undefined && currentEntity[name] !== null ? String(currentEntity[name]) : ''}
-                  onChange={handleInputChange}
+                  onChange={(value) => handleInputChange({ target: { name, value, type: 'select-one' } })}
                   disabled={isDisabled}
-                  className="input"
-                >
-                  <option value="">{`Select ${label}`}</option>
-                  {selectOptions.map((option, index) => {
-                    // Create a unique key by combining multiple possible identifiers
-                    const uniqueKey = option.id || option.value || option.userId || `${name}-option-${index}`;
-                    
+                  placeholder={`Select ${label}`}
+                  ariaLabel={label}
+                  options={selectOptions.map((option, index) => {
                     // FIX: More explicit value handling - prioritize 'value' property for form options
                     let optionValue;
                     if (option.hasOwnProperty('value')) {
@@ -156,13 +152,9 @@ function EntityFormModal({
                     
                     const optionLabel = option.label || option.name || optionValue;
                     
-                    return (
-                      <option key={uniqueKey} value={String(optionValue)}>
-                        {optionLabel}
-                      </option>
-                    );
+                    return { value: String(optionValue), label: optionLabel };
                   })}
-                </select>
+                />
               )}
               {disabled && !onView && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -174,6 +166,56 @@ function EntityFormModal({
         }
           
         
+      case 'file': {
+        const selectedFile = currentEntity[name] instanceof File ? currentEntity[name] : null;
+        const currentPath = field.currentValueField ? currentEntity[field.currentValueField] : null;
+        // Uploaded files are served from the backend root, not under the /api base path.
+        const currentImageUrl = currentPath
+          ? `${(process.env.NEXT_PUBLIC_APIURL || '').replace(/\/api\/?$/, '')}${currentPath}`
+          : null;
+        return (
+          <div className="mb-4" key={name}>
+            <label className="block text-gray-700 text-sm font-medium mb-2">
+              {label} {required && !onView && '*'}
+            </label>
+            {onView ? (
+              currentImageUrl && !selectedFile ? (
+                <img
+                  src={currentImageUrl}
+                  alt={label}
+                  className="max-h-48 rounded-md border border-gray-200 object-contain"
+                />
+              ) : (
+                <div className="py-2 px-3 bg-gray-50 border border-gray-200 rounded-md text-gray-700">
+                  {selectedFile?.name || 'No file'}
+                </div>
+              )
+            ) : (
+              <>
+                <input
+                  type="file"
+                  name={name}
+                  accept={field.accept}
+                  onChange={(e) => setCurrentEntity(prev => ({ ...prev, [name]: e.target.files?.[0] ?? null }))}
+                  className="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                  disabled={isDisabled}
+                />
+                {selectedFile && (
+                  <p className="text-xs text-gray-500 mt-1">Selected: {selectedFile.name}</p>
+                )}
+                {!selectedFile && currentImageUrl && (
+                  <img
+                    src={currentImageUrl}
+                    alt={label}
+                    className="mt-2 max-h-48 rounded-md border border-gray-200 object-contain"
+                  />
+                )}
+              </>
+            )}
+          </div>
+        );
+      }
+
       case 'textarea':
         return (
           <div className="mb-4" key={name}>
